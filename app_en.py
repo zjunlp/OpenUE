@@ -169,7 +169,7 @@ def IEDemo():
     text_list  = cut_sentence(sentence)
     all_res = {}
     for i,text in enumerate(text_list):
-        text = text  +"。"
+        text = text  +"."
         if len(text) == 1:
             continue
         print(text)
@@ -197,15 +197,17 @@ def IEDemo():
             continue
         for item in predicate_predict:
             text_token =" ".join(tokenizer.tokenize(text))
+            text_not_UNK =" ".join(tokenizer.tokenize_not_UNK(text))
             text2 = text_token + "\t" + item
             text2_raw = text + "\t" + item
+            text2_not_UNK = text_not_UNK + "\t" + item
             resp = requests.post('http://'+config.tf_serving_addr+'/v1/models/seq_wiki:predict', json=preprocess(text2,'seq'))
             spo_res_raw = resp.json()['outputs']
             predicate_probabilities = spo_res_raw['predicate_probabilities'][0]
             token_label_predictions = spo_res_raw['token_label_predictions'][0]
             token_label_output = [token_label_id2label[id] for id in token_label_predictions]
             text_sentence_list.append(text2_raw)
-            token_in_not_NUK_list.append(text2)
+            token_in_not_NUK_list.append(text2_not_UNK)
             token_label_list.append(token_label_output)
             token_prob_list.append(token_prob_list)
         end = time.time()
@@ -226,5 +228,5 @@ def IEDemo():
     return json.dumps(all_res,ensure_ascii=False)
 
 if __name__ == '__main__':
-    server = pywsgi.WSGIServer(('11.251.194.202', 8887), app)
+    server = pywsgi.WSGIServer(('127.0.0.1', 8887), app)
     server.serve_forever()

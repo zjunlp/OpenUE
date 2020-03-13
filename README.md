@@ -1,4 +1,4 @@
-
+[**中文说明**](https://github.com/zxlzr/OpenUE/) | [**English**](https://github.com/zxlzr/OpenUE/blob/master/README_CN.md)
 <p align="center">
     <a href="https://github.com/zxlzr/OpenUE"> <img src="https://raw.githubusercontent.com/zxlzr/OpenUE/master/docs/img/logo.jpg" width="400"/></a>
 </p>

@@ -173,6 +173,7 @@ def IEDemo():
         sentence = json.loads(data)['query']
     if True:
         text = sentence
+        print(text)
         start = time.time()
         total_start = time.time()
         resp = requests.post('http://'+config.tf_serving_addr+'/v1/models/class_med:predict', json=preprocess(text,'class'))

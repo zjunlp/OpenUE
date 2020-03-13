@@ -55,6 +55,7 @@ class SPO_Management():
                     if entity_part.startswith("##"):
                         entity_content += entity_part.replace("##", "")
                     else:
+                        entity_content += " "
                         entity_content += entity_part
             if entity_content != "":
                 entity_sort_tuple_list.append((entity_type[2:], entity_content))

@@ -90,6 +90,8 @@ sh serving.sh
 ```
 
 
+--runtime=nvidia -e CUDA_VISIBLE_DEVICES=0
+
 ## Intent and Slot Filling
  
 ## Opinion and Apspect Extraction

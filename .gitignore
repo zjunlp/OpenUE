@@ -6,7 +6,6 @@ output
 *.txt
 *.pyc
 __pycache__
-demo
 export
 *.out
 .eggs

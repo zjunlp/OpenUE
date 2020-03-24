@@ -78,23 +78,25 @@ sh train_sequence_labeling.sh
 sh train_classification.sh
 
 ```
+You can download the checkpoint [here](), extract and put them in the *output* folder.
+
 3. ***Test***. Run
 ```
-sh predict.sh
+python  predict_online.py
+```
+4. ***Predict***. Run 
+```
 python gen_triple.py
 ```
-4. ***Serving***. Run
+5. ***Serving***. Run
 ```
-sh export.sh
-sh serving.sh
+sh export_seq.sh
+sh serving_cls.sh
 ```
-
-
---runtime=nvidia -e CUDA_VISIBLE_DEVICES=0
-
-## Intent and Slot Filling
- 
-## Opinion and Apspect Extraction
+6. ***Demo***.Run
+```
+python app.py 
+```
 
 ## Tools
 

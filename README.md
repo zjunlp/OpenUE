@@ -74,20 +74,20 @@ You can download the checkpoint [here](), extract and put them in the *output* f
 3. ***Predict***. Run 
 
 ```
-python gen_triple.py
+python predict.sh ske
 ```
 4. ***Serving***. Run
 ```
-sh export_seq.sh
-sh serving_cls.sh
+sh export_seq.sh ske
+sh serving_cls.sh ske
 ```
 5. ***Test***. Run
 ```
-python  predict_online.py
+python  predict_online.py ske
 ```
 6. ***Demo***.Run
 ```
-python app.py 
+python app.py  ske
 ```
 ## Tools
 

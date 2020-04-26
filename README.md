@@ -62,7 +62,7 @@ Once you have installed OpenUE, here are a few examples of what you can run with
 ```
 sh download_ske_dataset.sh
 sh download_pretrain_cn_bert.sh
-sh preprocess.sh 
+sh preprocess.sh  ske
 ```
 2. ***Train Sequence Labeling & Classification Model***. Set all parameters in the file config.py and run 
 ```
@@ -76,14 +76,15 @@ You can download the checkpoint [here](), extract and put them in the *output* f
 ```
 python predict.sh ske
 ```
-4. ***Serving***. Run
+4. ***Export & Serving***. Run
 ```
 sh export_seq.sh ske
 sh serving_cls.sh ske
+sh serving.sh
 ```
 5. ***Test***. Run
 ```
-python  predict_online.py ske
+python  predict_online.py
 ```
 6. ***Demo***.Run
 ```

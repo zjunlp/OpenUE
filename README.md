@@ -70,13 +70,11 @@ sh train_sequence_labeling.sh
 sh train_classification.sh
 ```
 You can download the checkpoint [here](), extract and put them in the *output* folder.
-```
 3. ***Predict***. Run 
 
 ```
 python gen_triple.py
 ```
-
 4. ***Serving***. Run
 ```
 sh export_seq.sh
@@ -90,7 +88,6 @@ python  predict_online.py
 ```
 python app.py 
 ```
-
 ## Tools
 
 ```python

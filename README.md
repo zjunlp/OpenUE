@@ -44,35 +44,24 @@ lots of NLP extraction  tasks in one easy-to-use python package.
 
 #### Requirements and Installation
 
-##### Virtual Environment
-To avoid dependency clustering and issues, it would be wise to install OpenUE in a virtual environment.
-To create a new python 3.6+ virtual environment, run this command and then activate it however your operating
-system specifies:
-```
-python -m venv venv-openue
-```
-
-##### AdaptNLP Install
-
-Install using pip in your virtual environment:
-```
-git clone https://github.com/zxlzr/OpenUE.git
-pip install -r requirement.txt
+##### Anaconda Environment
 
 ```
-or
-```
-pip install openue
+conda create -n openue python=3.6
+conda activate openue
+pip install -r requirements.txt 
 ```
 
 #### Examples and General Use
 
 Once you have installed OpenUE, here are a few examples of what you can run with OpenUE modules:
 
-##### Entity and Relation Extraction
+##### Entity and Relation Extraction Example
 
 1. ***Data Preprocessing***. Put the pretrined language model (e.g., [BERT](https://github.com/google-research/bert)) in the ***pretrained_model*** folder and put all raw data (run script download_ske.sh in the benchmark folder) in the ***raw_data folder***, run
 ```
+sh download_ske_dataset.sh
+sh download_pretrain_cn_bert.sh
 sh preprocess.sh 
 ```
 2. ***Train Sequence Labeling & Classification Model***. Set all parameters in the file config.py and run 

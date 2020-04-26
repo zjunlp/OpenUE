@@ -216,11 +216,9 @@ class Sorted_relation_and_entity_list_Management(File_Management):
                 if len(spo_list) > 0:
                     result_json_write_f.write(line_json + "\n")
         print("empty_line: {}, line: {}, percentage: {:.2f}%".format(count_empty_line_number, count_line_number,
-                                                                     (count_empty_line_number / count_line_number) * 100))
-
 
 if __name__=='__main__':
-    TEST_DATA_DIR = "openue/sequence_labeling/sequence_labeling_data/test"
+    TEST_DATA_DIR = "openue/sequence_labeling/sequence_labeling_data/" + sys.argv[1] + "test"
     # MODEL_OUTPUT_DIR = "output/sequnce_infer_out/epochs9/ckpt20000"
     MODEL_OUTPUT_DIR = None
     OUT_RESULTS_DIR = "output/predict_text_spo_list_result"

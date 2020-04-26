@@ -29,7 +29,7 @@ class Model_data_preparation(object):
     def separate_raw_data_and_token_labeling(self):
         if not os.path.exists(self.DATA_OUTPUT_DIR):
             os.makedirs(os.path.join(self.DATA_OUTPUT_DIR, "train"))
-            os.makedirs(os.path.join(testA_OUTPUT_DIR, "valid"))
+            os.makedirs(os.path.join(self.DATA_OUTPUT_DIR, "valid"))
             os.makedirs(os.path.join(self.DATA_OUTPUT_DIR, "test"))
 
         file_set_type_list = ["train", "valid", "test"]
@@ -99,7 +99,8 @@ class Model_data_preparation(object):
 
 if __name__ == "__main__":
     RAW_DATA_DIR = config.data_dir
-    DATA_OUTPUT_DIR = "classification_data"
+    data_type = sys.argv[1]
+    DATA_OUTPUT_DIR = "classification_data/" + data_type
     Vocab_Path = config.bert_vocab_dir
     General_Mode = False
     model_data = Model_data_preparation(

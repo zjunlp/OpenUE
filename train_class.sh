@@ -2,7 +2,7 @@ python run_classification.py \
     --task_name=classification \
     --do_train=true \
     --do_eval=true \
-    --data_dir=openue/classification/classification_data \
+    --data_dir=openue/classification/classification_data/$1 \
     --vocab_file=pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/vocab.txt \
     --bert_config_file=pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/bert_config.json \
     --init_checkpoint=pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/bert_model.ckpt \
@@ -10,4 +10,4 @@ python run_classification.py \
     --train_batch_size=32 \
     --learning_rate=2e-5 \
     --num_train_epochs=6.0 \
-    --output_dir=./output/classification_model/wwm2/
+    --output_dir=./output/classification_model/wwm/

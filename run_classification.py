@@ -30,7 +30,6 @@ from bert import tokenization
 from config import config
 flags = tf.flags
 FLAGS = flags.FLAGS
-os.environ["CUDA_VISIBLE_DEVICES"]="0"  # specify which GPU(s) to be used
 
 ## Required parameters
 flags.DEFINE_string(

@@ -106,7 +106,7 @@ class Model_data_preparation(object):
             if not self.General_Mode:
                 for (spo_subject, spo_object) in spo_list_form:
                     flag_A = _labeling_type(spo_subject, "SUB")
-                    flag_B = _labeling_type(spo_object, "OBJ")
+                    #flag_B = _labeling_type(spo_object, "OBJ")
                     if flag_A or flag_B:
                         tokener_error_flag = True
             else:
@@ -170,8 +170,7 @@ class Model_data_preparation(object):
 
 if __name__=="__main__":
     DATA_INPUT_DIR = config.data_dir
-    data_type = sys.argv[1]
-    DATA_OUTPUT_DIR = "sequence_labeling_data/" + data_type
+    DATA_OUTPUT_DIR = "sequence_labeling_data"
     Vocab_Path = config.bert_vocab_dir
     General_Mode = False
     model_data = Model_data_preparation(General_Mode = General_Mode,DATA_INPUT_DIR=DATA_INPUT_DIR, DATA_OUTPUT_DIR=DATA_OUTPUT_DIR,vocab_file_path=Vocab_Path)

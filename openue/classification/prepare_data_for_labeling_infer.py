@@ -1,4 +1,5 @@
 import os
+import sys
 
 def get_latest_model_predict_data_dir(new_epochs_ckpt_dir=None):
     def new_report(test_report):
@@ -73,9 +74,9 @@ def prepare_data_for_subject_object_labeling_infer(predicate_classifiction_input
 
 
 if __name__=="__main__":
-    predicate_classifiction_input_file_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../classification/classification_data/test"))
+    predicate_classifiction_input_file_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../classification/classification_data/"+ sys.argv[1] +"/test"))
     #predicate_classifiction_infer_file_dir = "output/predicate_infer_out/epochs6/ckpt23000"
     predicate_classifiction_infer_file_dir = None #None表示使用最新模型输出
-    out_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../sequence_labeling/sequence_labeling_data/test"))
+    out_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../sequence_labeling/sequence_labeling_data/"+ sys.argv[1] +"/test"))
     prepare_data_for_subject_object_labeling_infer(predicate_classifiction_input_file_dir,
                                                    predicate_classifiction_infer_file_dir, out_file)

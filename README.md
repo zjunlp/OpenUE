@@ -37,8 +37,8 @@ lots of NLP extraction  tasks in one easy-to-use python package.
   - [Dockerizing OpenUE with GPUs](https://hub.docker.com/r/)
     - Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
 ## Environment
-    - python3.6
-    - [requirements.txt](https://github.com/zxlzr/OpenUE/blob/master/requirements.txt) 
+  - python3.6
+  - [requirements.txt](https://github.com/zxlzr/OpenUE/blob/master/requirements.txt) 
 
 ## Quick Start
 

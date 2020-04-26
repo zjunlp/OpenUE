@@ -70,6 +70,7 @@ sh train_sequence_labeling.sh
 sh train_classification.sh
 ```
 You can download the checkpoint [here](), extract and put them in the *output* folder.
+
 3. ***Predict***. Run 
 
 ```

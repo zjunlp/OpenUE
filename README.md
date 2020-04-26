@@ -68,22 +68,23 @@ sh preprocess.sh
 ```
 sh train_sequence_labeling.sh
 sh train_classification.sh
-
 ```
 You can download the checkpoint [here](), extract and put them in the *output* folder.
+```
+3. ***Predict***. Run 
 
-3. ***Test***. Run
-```
-python  predict_online.py
-```
-4. ***Predict***. Run 
 ```
 python gen_triple.py
 ```
-5. ***Serving***. Run
+
+4. ***Serving***. Run
 ```
 sh export_seq.sh
 sh serving_cls.sh
+```
+5. ***Test***. Run
+```
+python  predict_online.py
 ```
 6. ***Demo***.Run
 ```

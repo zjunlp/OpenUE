@@ -49,7 +49,7 @@ lots of NLP extraction  tasks in one easy-to-use python package.
 ```
 conda create -n openue python=3.6
 conda activate openue
-pip install -r requirements.txt 
+conda install  --file requirements.txt 
 ```
 
 #### Examples and General Use

@@ -44,63 +44,51 @@ lots of NLP extraction  tasks in one easy-to-use python package.
 
 #### Requirements and Installation
 
-##### Virtual Environment
-To avoid dependency clustering and issues, it would be wise to install OpenUE in a virtual environment.
-To create a new python 3.6+ virtual environment, run this command and then activate it however your operating
-system specifies:
-```
-python -m venv venv-openue
-```
-
-##### AdaptNLP Install
-
-Install using pip in your virtual environment:
-```
-git clone https://github.com/zxlzr/OpenUE.git
-pip install -r requirement.txt
+##### Anaconda Environment
 
 ```
-or
-```
-pip install openue
+conda create -n openue python=3.6
+conda activate openue
+conda install  --file requirements.txt 
 ```
 
 #### Examples and General Use
 
 Once you have installed OpenUE, here are a few examples of what you can run with OpenUE modules:
 
-##### Entity and Relation Extraction
+##### Entity and Relation Extraction Example
 
 1. ***Data Preprocessing***. Put the pretrined language model (e.g., [BERT](https://github.com/google-research/bert)) in the ***pretrained_model*** folder and put all raw data (run script download_ske.sh in the benchmark folder) in the ***raw_data folder***, run
 ```
+sh download_ske_dataset.sh
+sh download_pretrain_cn_bert.sh
 sh preprocess.sh 
 ```
 2. ***Train Sequence Labeling & Classification Model***. Set all parameters in the file config.py and run 
 ```
 sh train_sequence_labeling.sh
 sh train_classification.sh
-
 ```
 You can download the checkpoint [here](), extract and put them in the *output* folder.
 
-3. ***Test***. Run
+3. ***Predict***. Run 
+
 ```
-python  predict_online.py
+python predict.sh ske
 ```
-4. ***Predict***. Run 
+4. ***Serving***. Run
 ```
-python gen_triple.py
+sh export_seq.sh ske
+sh serving_cls.sh ske
 ```
-5. ***Serving***. Run
+5. ***Test***. Run
 ```
-sh export_seq.sh
-sh serving_cls.sh
+python  predict_online.py ske
 ```
 6. ***Demo***.Run
 ```
-python app.py 
+python app.py  ske
 ```
-
 ## Tools
 
 ```python

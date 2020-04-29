@@ -1,53 +1,676 @@
 import sys
+sys.path.append("../../")
+sys.path.append("../")
 import os
 import subprocess
-from config import config
-sys.path.append("../../")
+from .config import config
+from .bert import modeling
+from .bert import optimization
+from .bert import tokenization
+import tensorflow as tf
+import collections
 
 model_ip = ''
-cur_dir = '/apsarapangu/disk1/ningyu.zny/OpenUE/'
-cmd_classification  = '''python '''+cur_dir+'''run_classification.py \
-  --task_name=classification \
-  --do_predict=true \
-  --data_dir=tmp/classification/classification_data \
-  --vocab_file='''+config.bert_vocab_dir+''' \
-  --bert_config_file='''+config.bert_config_dir+''' \
-  --init_checkpoint='''+config.class_model_dir+''' \
-  --max_seq_length='''+config.max_len+''' \
-  --output_dir='''+config.middle_out_dir
+flags = tf.flags
+FLAGS = flags.FLAGS
 
-cmd_middle = "python "+cur_dir+"openue/classification/prepare_data_for_labeling_infer.py"
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
-cmd_sequence = '''python '''+cur_dir+'''run_sequnce_labeling.py \
-  --task_name=SKE_2019 \
-  --do_predict=true \
-  --data_dir=tmp/sequence_labeling/sequence_labeling_data \
-  --vocab_file='''+config.bert_vocab_dir+''' \
-  --bert_config_file='''+config.bert_config_dir+''' \
-  --init_checkpoint='''+config.seq_model_dir+''' \
-  --max_seq_length='''+config.max_len+''' \
-  --output_dir='''+config.out_dir
-train_class = '''
+flags.DEFINE_string(
+    "data_dir", None,
+    "The input data dir. Should contain the .tsv files (or other data files) "
+    "for the task.")
 
-'''
+flags.DEFINE_string(
+    "bert_config_file","/home/ningyu.zny/work/OpenUE/pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/bert_config.json",
+    "The config json file corresponding to the pre-trained BERT model. "
+    "This specifies the model architecture.")
 
-train_seq = '''
+flags.DEFINE_string("task_name", None, "The name of the task to train.")
 
-'''
-pre_class = "python "+cur_dir+"openue/classification/classification_data_manager.py"
-pre_seq = "python "+cur_dir+"openue/sequence_labeling/sequence_labeling_data_manager.py"
+flags.DEFINE_string("vocab_file","/home/ningyu.zny/work/OpenUE/pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/vocab.txt",
+                    "The vocabulary file that the BERT model was trained on.")
+
+flags.DEFINE_string(
+    "output_dir", None,
+    "The output directory where the model checkpoints will be written.")
+
+## Other parameters
+
+flags.DEFINE_string(
+    "init_checkpoint","/home/ningyu.zny/work/OpenUE/output/predicate_classification_model/epochs6/model.ckpt-6000",
+    "Initial checkpoint (usually from a pre-trained BERT model).")
+
+flags.DEFINE_bool(
+    "do_lower_case", True,
+    "Whether to lower case the input text. Should be True for uncased "
+    "models and False for cased models.")
+
+flags.DEFINE_integer(
+    "max_seq_length", 128,
+    "The maximum total input sequence length after WordPiece tokenization. "
+    "Sequences longer than this will be truncated, and sequences shorter "
+    "than this will be padded.")
+
+flags.DEFINE_bool("do_train", False, "Whether to run training.")
+
+flags.DEFINE_bool("do_eval", False, "Whether to run eval on the dev set.")
+
+flags.DEFINE_bool(
+    "do_predict", False,
+    "Whether to run the model in inference mode on the test set.")
+
+flags.DEFINE_integer("train_batch_size", 32, "Total batch size for training.")
+
+flags.DEFINE_integer("eval_batch_size", 8, "Total batch size for eval.")
+
+flags.DEFINE_integer("predict_batch_size", 8, "Total batch size for predict.")
+
+flags.DEFINE_float("learning_rate", 5e-5, "The initial learning rate for Adam.")
+
+flags.DEFINE_float("num_train_epochs", 3.0,
+                   "Total number of training epochs to perform.")
+
+flags.DEFINE_float(
+    "warmup_proportion", 0.1,
+    "Proportion of training to perform linear learning rate warmup for. "
+    "E.g., 0.1 = 10% of training.")
+
+flags.DEFINE_integer("save_checkpoints_steps", 1000,
+                     "How often to save the model checkpoint.")
+
+flags.DEFINE_integer("iterations_per_loop", 1000,
+                     "How many steps to make in each estimator call.")
+
+flags.DEFINE_bool("use_tpu", False, "Whether to use TPU or GPU/CPU.")
+
+tf.flags.DEFINE_string(
+    "tpu_name", None,
+    "The Cloud TPU to use for training. This should be either the name "
+    "used when creating the Cloud TPU, or a grpc://ip.address.of.tpu:8470 "
+    "url.")
+
+tf.flags.DEFINE_string(
+    "tpu_zone", None,
+    "[Optional] GCE zone where the Cloud TPU is located in. If not "
+    "specified, we will attempt to automatically detect the GCE project from "
+    "metadata.")
+
+tf.flags.DEFINE_string(
+    "gcp_project", None,
+    "[Optional] Project name for the Cloud TPU-enabled project. If not "
+    "specified, we will attempt to automatically detect the GCE project from "
+    "metadata.")
+
+tf.flags.DEFINE_string("master", None, "[Optional] TensorFlow master URL.")
+
+flags.DEFINE_integer(
+    "num_tpu_cores", 8,
+    "Only used if `use_tpu` is True. Total number of TPU cores to use.")
+
+
+class InputExample(object):
+    """A single training/test example for simple sequence classification."""
+
+    def __init__(self, guid, text_a, text_b=None, label=None):
+        """Constructs a InputExample.
+
+        Args:
+          guid: Unique id for the example.
+          text_a: string. The untokenized text of the first sequence. For single
+            sequence tasks, only this sequence must be specified.
+          text_b: (Optional) string. The untokenized text of the second sequence.
+            Only must be specified for sequence pair tasks.
+          label: (Optional) string. The label of the example. This should be
+            specified for train and dev examples, but not for test examples.
+        """
+        self.guid = guid
+        self.text_a = text_a
+        self.text_b = text_b
+        self.label = label
+
+
+class PaddingInputExample(object):
+    """Fake example so the num input examples is a multiple of the batch size.
+
+    When running eval/predict on the TPU, we need to pad the number of examples
+    to be a multiple of the batch size, because the TPU requires a fixed batch
+    size. The alternative is to drop the last batch, which is bad because it means
+    the entire output data won't be generated.
+
+    We use this class instead of `None` because treating `None` as padding
+    battches could cause silent errors.
+    """
+
+
+class InputFeatures(object):
+    """A single set of features of data."""
+
+    def __init__(self,
+                 input_ids,
+                 input_mask,
+                 segment_ids,
+                 label_ids,
+                 is_real_example=True):
+        self.input_ids = input_ids
+        self.input_mask = input_mask
+        self.segment_ids = segment_ids
+        self.label_ids = label_ids
+        self.is_real_example = is_real_example
+
+
+class DataProcessor(object):
+    """Base class for data converters for sequence classification data sets."""
+
+    def get_train_examples(self, data_dir):
+        """Gets a collection of `InputExample`s for the train set."""
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        """Gets a collection of `InputExample`s for the dev set."""
+        raise NotImplementedError()
+
+    def get_test_examples(self, data_dir):
+        """Gets a collection of `InputExample`s for prediction."""
+        raise NotImplementedError()
+
+    def get_labels(self):
+        """Gets the list of labels for this data set."""
+        raise NotImplementedError()
+
+    @classmethod
+    def _read_tsv(cls, input_file, quotechar=None):
+        """Reads a tab separated value file."""
+        with tf.gfile.Open(input_file, "r") as f:
+            reader = csv.reader(f, delimiter="\t", quotechar=quotechar)
+            lines = []
+            for line in reader:
+                lines.append(line)
+            return lines
+
+
+class Multi_Label_Classification_Processor(DataProcessor):
+
+    def __init__(self):
+        self.language = "zh"
+
+    def get_examples(self, data_dir):
+        with open(os.path.join(data_dir, "token_in.txt"), encoding='utf-8') as token_in_f:
+            with open(os.path.join(data_dir, "predicate_out.txt"), encoding='utf-8') as predicate_out_f:
+                token_in_list = [seq.replace("\n", '') for seq in token_in_f.readlines()]
+                predicate_label_list = [seq.replace("\n", '') for seq in predicate_out_f.readlines()]
+                assert len(token_in_list) == len(predicate_label_list)
+                examples = list(zip(token_in_list, predicate_label_list))
+                return examples
+
+    def get_train_examples(self, data_dir):
+        return self._create_example(self.get_examples(os.path.join(data_dir, "train")), "train")
+
+    def get_dev_examples(self, data_dir):
+        return self._create_example(self.get_examples(os.path.join(data_dir, "valid")), "valid")
+
+    def get_test_examples(self, data_dir):
+        with open(os.path.join(data_dir, os.path.join("test", "token_in.txt")), encoding='utf-8') as token_in_f:
+            token_in_list = [seq.replace("\n", '') for seq in token_in_f.readlines()]
+            examples = token_in_list
+            return self._create_example(examples, "test")
+
+    def get_labels(self):
+        #return all sentence level labels
+        return config.class_label
+
+    def _create_example(self, lines, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        for (i, line) in enumerate(lines):
+            guid = "%s-%s" % (set_type, i)
+            if set_type == "test":
+                text_str = line
+                predicate_label_str = '丈夫'
+            else:
+                text_str = line[0]
+                predicate_label_str = line[1]
+            examples.append(
+                InputExample(guid=guid, text_a=text_str, text_b=None, label=predicate_label_str))
+        return examples
+
+
+def convert_single_example(ex_index, example, label_list, max_seq_length,
+                           tokenizer):
+    """Converts a single `InputExample` into a single `InputFeatures`."""
+
+    if isinstance(example, PaddingInputExample):
+        return InputFeatures(
+            input_ids=[0] * max_seq_length,
+            input_mask=[0] * max_seq_length,
+            segment_ids=[0] * max_seq_length,
+            label_ids=[0] * len(label_list),
+            is_real_example=False)
+
+    label_map = {}
+    for (i, label) in enumerate(label_list):
+        label_map[label] = i
+
+    tokens_a = example.text_a.split(" ")
+    tokens_b = None
+    if example.text_b:
+        tokens_b = tokenizer.tokenize(example.text_b)
+
+    if tokens_b:
+        # Modifies `tokens_a` and `tokens_b` in place so that the total
+        # length is less than the specified length.
+        # Account for [CLS], [SEP], [SEP] with "- 3"
+        _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
+    else:
+        # Account for [CLS] and [SEP] with "- 2"
+        if len(tokens_a) > max_seq_length - 2:
+            tokens_a = tokens_a[0:(max_seq_length - 2)]
+
+    # The convention in BERT is:
+    # (a) For sequence pairs:
+    #  tokens:   [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]
+    #  type_ids: 0     0  0    0    0     0       0 0     1  1  1  1   1 1
+    # (b) For single sequences:
+    #  tokens:   [CLS] the dog is hairy . [SEP]
+    #  type_ids: 0     0   0   0  0     0 0
+    #
+    # Where "type_ids" are used to indicate whether this is the first
+    # sequence or the second sequence. The embedding vectors for `type=0` and
+    # `type=1` were learned during pre-training and are added to the wordpiece
+    # embedding vector (and position vector). This is not *strictly* necessary
+    # since the [SEP] token unambiguously separates the sequences, but it makes
+    # it easier for the model to learn the concept of sequences.
+    #
+    # For classification tasks, the first vector (corresponding to [CLS]) is
+    # used as the "sentence vector". Note that this only makes sense because
+    # the entire model is fine-tuned.
+    tokens = []
+    segment_ids = []
+    tokens.append("[CLS]")
+    segment_ids.append(0)
+    for token in tokens_a:
+        tokens.append(token)
+        segment_ids.append(0)
+    tokens.append("[SEP]")
+    segment_ids.append(0)
+
+    if tokens_b:
+        for token in tokens_b:
+            tokens.append(token)
+            segment_ids.append(1)
+        tokens.append("[SEP]")
+        segment_ids.append(1)
+
+    input_ids = tokenizer.convert_tokens_to_ids(tokens)
+
+    # The mask has 1 for real tokens and 0 for padding tokens. Only real
+    # tokens are attended to.
+    input_mask = [1] * len(input_ids)
+
+    # Zero-pad up to the sequence length.
+    while len(input_ids) < max_seq_length:
+        input_ids.append(0)
+        input_mask.append(0)
+        segment_ids.append(0)
+
+    assert len(input_ids) == max_seq_length
+    assert len(input_mask) == max_seq_length
+    assert len(segment_ids) == max_seq_length
+
+    label_list = example.label.split(" ")
+    label_ids = _predicate_label_to_id(label_list, label_map)
+
+    if ex_index < 5:
+        tf.logging.info("*** Example ***")
+        tf.logging.info("guid: %s" % (example.guid))
+        tf.logging.info("tokens: %s" % " ".join(
+            [tokenization.printable_text(x) for x in tokens]))
+        tf.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
+        tf.logging.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
+        tf.logging.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+        tf.logging.info("label_ids: %s" % " ".join([str(x) for x in label_ids]))
+
+    feature = InputFeatures(
+        input_ids=input_ids,
+        input_mask=input_mask,
+        segment_ids=segment_ids,
+        label_ids=label_ids,
+        is_real_example=True)
+    return feature
+
+def _predicate_label_to_id(predicate_label, predicate_label_map):
+    predicate_label_map_length = len(predicate_label_map)
+    predicate_label_ids = [0] * predicate_label_map_length
+    for label in predicate_label:
+        predicate_label_ids[predicate_label_map[label]] = 1
+    return predicate_label_ids
+
+def file_based_convert_examples_to_features(
+        examples, label_list, max_seq_length, tokenizer, output_file):
+    """Convert a set of `InputExample`s to a TFRecord file."""
+
+    writer = tf.python_io.TFRecordWriter(output_file)
+    for (ex_index, example) in enumerate(examples):
+        ex_index = 0
+        example = examples
+        try:
+            feature = convert_single_example(ex_index, example, label_list,
+                                         max_seq_length, tokenizer)
+        except:
+            continue
+        def create_int_feature(values):
+            f = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
+            return f
+
+        features = collections.OrderedDict()
+        features["input_ids"] = create_int_feature(feature.input_ids)
+        features["input_mask"] = create_int_feature(feature.input_mask)
+        features["segment_ids"] = create_int_feature(feature.segment_ids)
+        features["label_ids"] = create_int_feature(feature.label_ids)
+        features["is_real_example"] = create_int_feature(
+            [int(feature.is_real_example)])
+
+        tf_example = tf.train.Example(features=tf.train.Features(feature=features))
+        writer.write(tf_example.SerializeToString())
+    writer.close()
+
+
+def file_based_input_fn_builder(input_file, seq_length, label_length,
+                                is_training, drop_remainder):
+    """Creates an `input_fn` closure to be passed to TPUEstimator."""
+
+    name_to_features = {
+        "input_ids": tf.FixedLenFeature([seq_length], tf.int64),
+        "input_mask": tf.FixedLenFeature([seq_length], tf.int64),
+        "segment_ids": tf.FixedLenFeature([seq_length], tf.int64),
+        "label_ids": tf.FixedLenFeature([label_length], tf.int64),
+        "is_real_example": tf.FixedLenFeature([], tf.int64),
+    }
+
+    def _decode_record(record, name_to_features):
+        """Decodes a record to a TensorFlow example."""
+        example = tf.parse_single_example(record, name_to_features)
+
+        # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
+        # So cast all int64 to int32.
+        for name in list(example.keys()):
+            t = example[name]
+            if t.dtype == tf.int64:
+                t = tf.to_int32(t)
+            example[name] = t
+
+        return example
+
+    def input_fn(params):
+        """The actual input function."""
+        batch_size = params["batch_size"]
+
+        # For training, we want a lot of parallel reading and shuffling.
+        # For eval, we want no shuffling and parallel reading doesn't matter.
+        d = tf.data.TFRecordDataset(input_file)
+        #d = input_file
+        if is_training:
+            d = d.repeat()
+            d = d.shuffle(buffer_size=100)
+
+        d = d.apply(
+            tf.contrib.data.map_and_batch(
+                lambda record: _decode_record(record, name_to_features),
+                batch_size=batch_size,
+                drop_remainder=drop_remainder))
+
+        return d
+
+    return input_fn
+
+
+def _truncate_seq_pair(tokens_a, tokens_b, max_length):
+    """Truncates a sequence pair in place to the maximum length."""
+
+    # This is a simple heuristic which will always truncate the longer sequence
+    # one token at a time. This makes more sense than truncating an equal percent
+    # of tokens from each, since if one sequence is very short then each token
+    # that's truncated likely contains more information than a longer sequence.
+    while True:
+        total_length = len(tokens_a) + len(tokens_b)
+        if total_length <= max_length:
+            break
+        if len(tokens_a) > len(tokens_b):
+            tokens_a.pop()
+        else:
+            tokens_b.pop()
+
+
+def create_model(bert_config, is_training, input_ids, input_mask, segment_ids,
+                 labels, num_labels, use_one_hot_embeddings):
+    """Creates a classification model."""
+    model = modeling.BertModel(
+        config=bert_config,
+        is_training=is_training,
+        input_ids=input_ids,
+        input_mask=input_mask,
+        token_type_ids=segment_ids,
+        use_one_hot_embeddings=use_one_hot_embeddings)
+
+    # In the demo, we are doing a simple classification task on the entire
+    # segment.
+    #
+    # If you want to use the token-level output, use model.get_sequence_output()
+    # instead.
+    output_layer = model.get_pooled_output()
+
+    hidden_size = output_layer.shape[-1].value
+
+    output_weights = tf.get_variable(
+        "output_weights", [num_labels, hidden_size],
+        initializer=tf.truncated_normal_initializer(stddev=0.02))
+
+    output_bias = tf.get_variable(
+        "output_bias", [num_labels], initializer=tf.zeros_initializer())
+
+    with tf.variable_scope("loss"):
+        if is_training:
+            # I.e., 0.1 dropout
+            output_layer = tf.nn.dropout(output_layer, keep_prob=0.9)
+
+        logits_wx = tf.matmul(output_layer, output_weights, transpose_b=True)
+        logits = tf.nn.bias_add(logits_wx, output_bias)
+        probabilities = tf.sigmoid(logits)
+        label_ids = tf.cast(labels, tf.float32)
+        per_example_loss = tf.reduce_sum(
+            tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=label_ids), axis=-1)
+        loss = tf.reduce_mean(per_example_loss)
+
+        return loss, per_example_loss, logits, probabilities
+
+
+def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
+                     num_train_steps, num_warmup_steps, use_tpu,
+                     use_one_hot_embeddings):
+    """Returns `model_fn` closure for TPUEstimator."""
+
+    def model_fn(features, labels, mode, params):  # pylint: disable=unused-argument
+        """The `model_fn` for TPUEstimator."""
+
+        tf.logging.info("*** Features ***")
+        for name in sorted(features.keys()):
+            tf.logging.info("  name = %s, shape = %s" % (name, features[name].shape))
+
+        input_ids = features["input_ids"]
+        input_mask = features["input_mask"]
+        segment_ids = features["segment_ids"]
+        label_ids = features["label_ids"]
+        is_real_example = None
+        if "is_real_example" in features:
+            is_real_example = tf.cast(features["is_real_example"], dtype=tf.float32)
+        else:
+            is_real_example = tf.ones(tf.shape(label_ids), dtype=tf.float32)
+
+        is_training = (mode == tf.estimator.ModeKeys.TRAIN)
+
+        (total_loss, per_example_loss, logits, probabilities) = create_model(
+            bert_config, is_training, input_ids, input_mask, segment_ids, label_ids,
+            num_labels, use_one_hot_embeddings)
+
+        tvars = tf.trainable_variables()
+        initialized_variable_names = {}
+        scaffold_fn = None
+        if init_checkpoint:
+            (assignment_map, initialized_variable_names
+             ) = modeling.get_assignment_map_from_checkpoint(tvars, init_checkpoint)
+            if use_tpu:
+
+                def tpu_scaffold():
+                    tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+                    return tf.train.Scaffold()
+
+                scaffold_fn = tpu_scaffold
+            else:
+                tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+
+        tf.logging.info("**** Trainable Variables ****")
+        for var in tvars:
+            init_string = ""
+            if var.name in initialized_variable_names:
+                init_string = ", *INIT_FROM_CKPT*"
+            tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
+                            init_string)
+
+        output_spec = None
+        if mode == tf.estimator.ModeKeys.TRAIN:
+
+            train_op = optimization.create_optimizer(
+                total_loss, learning_rate, num_train_steps, num_warmup_steps, use_tpu)
+
+            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+                mode=mode,
+                loss=total_loss,
+                train_op=train_op,
+                scaffold_fn=scaffold_fn)
+        elif mode == tf.estimator.ModeKeys.EVAL:
+
+            def metric_fn(per_example_loss, label_ids, probabilities, is_real_example):
+                predict_ids = tf.cast(probabilities > 0.5, tf.int32)
+                label_ids = tf.cast(label_ids, tf.int32)
+                elements_equal = tf.cast(tf.equal(predict_ids, label_ids), tf.int32)
+                # change [batch_size, class_numbers] to [1, batch_size]
+                row_predict_ids = tf.reduce_sum(elements_equal, -1)
+                row_label_ids = tf.reduce_sum(tf.ones_like(label_ids), -1)
+                accuracy = tf.metrics.accuracy(
+                    labels=row_label_ids, predictions=row_predict_ids)
+                loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
+                return {
+                    "eval_accuracy": accuracy,
+                    "eval_loss": loss,
+                }
+
+            eval_metrics = (metric_fn,
+                            [per_example_loss, label_ids, probabilities, is_real_example])
+            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+                mode=mode,
+                loss=total_loss,
+                eval_metrics=eval_metrics,
+                scaffold_fn=scaffold_fn)
+        else:
+            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+                mode=mode,
+                predictions={"probabilities": probabilities},
+                scaffold_fn=scaffold_fn)
+        return output_spec
+
+    return model_fn
 
 def get_model(model_name):
     if model_name == 'ske':
         download_model(model_ip,'ske')
 
-def infer():
-    os.system(pre_class)
-    os.system(pre_seq)
-    os.system(cmd_classification)
-    os.system(cmd_middle)
-    os.system(cmd_sequence)
-def train():
+def infer(line):
+    bert_config = modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
+    processor1 = Multi_Label_Classification_Processor()
+    label_list = processor1.get_labels()
+    label_length = len(label_list)
+    tokenizer = tokenization.FullTokenizer(
+        vocab_file=FLAGS.vocab_file, do_lower_case=FLAGS.do_lower_case)
+    tpu_cluster_resolver = None
+    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.contrib.tpu.RunConfig(
+        cluster=tpu_cluster_resolver,
+        master=FLAGS.master,
+        model_dir=FLAGS.output_dir,
+        save_checkpoints_steps=FLAGS.save_checkpoints_steps,
+        tpu_config=tf.contrib.tpu.TPUConfig(
+            iterations_per_loop=FLAGS.iterations_per_loop,
+            num_shards=FLAGS.num_tpu_cores,
+            per_host_input_for_training=is_per_host))
+
+    train_examples = None
+    num_train_steps = None
+    num_warmup_steps = None
+
+    model_fn = model_fn_builder(
+        bert_config=bert_config,
+        num_labels=len(label_list),
+        init_checkpoint=FLAGS.init_checkpoint,
+        learning_rate=FLAGS.learning_rate,
+        num_train_steps=num_train_steps,
+        num_warmup_steps=num_warmup_steps,
+        use_tpu=FLAGS.use_tpu,
+        use_one_hot_embeddings=FLAGS.use_tpu)
+
+    estimator = tf.contrib.tpu.TPUEstimator(
+        use_tpu=FLAGS.use_tpu,
+        model_fn=model_fn,
+        config=run_config,
+        train_batch_size=FLAGS.train_batch_size,
+        eval_batch_size=FLAGS.eval_batch_size,
+        predict_batch_size=FLAGS.predict_batch_size)
+
+    if True:
+        example = InputExample(guid="tmp", text_a=" ".join([x for x in line]), text_b=None, label="丈夫")
+
+        feature = convert_single_example(0, example, label_list,
+                                         FLAGS.max_seq_length, tokenizer)
+        def create_int_feature(values):
+            f = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
+            return f
+
+        features = collections.OrderedDict()
+        features["input_ids"] = create_int_feature(feature.input_ids)
+        features["input_mask"] = create_int_feature(feature.input_mask)
+        features["segment_ids"] = create_int_feature(feature.segment_ids)
+        features["label_ids"] = create_int_feature(feature.label_ids)
+        features["is_real_example"] = create_int_feature(
+            [int(feature.is_real_example)])
+
+        #tf_example = tf.train.Example(features=tf.train.Features(feature=features))
+        predict_file = tf.train.Example(features=tf.train.Features(feature=features)).SerializeToString()
+        writer = tf.python_io.TFRecordWriter("tmp.tfrecord")
+        writer.write(predict_file)
+        #writer.write(tf_example.SerializeToString())
+
+        predict_drop_remainder = True if FLAGS.use_tpu else False
+
+        predict_input_fn = file_based_input_fn_builder(
+            input_file="tmp.tfrecord",
+            seq_length=FLAGS.max_seq_length,
+            label_length=label_length,
+            is_training=False,
+            drop_remainder=predict_drop_remainder)
+
+        result = estimator.predict(input_fn=predict_input_fn)
+
+        if True:
+            if True:
+                for (i, prediction) in enumerate(result):
+                    probabilities = prediction["probabilities"]
+                    predicate_predict = []
+                    for idx, class_probability in enumerate(probabilities):
+                        if class_probability > 0.5:
+                            predicate_predict.append(label_list[idx])
+                    output_line_predicate_predict = " ".join(predicate_predict) + "\n"
+                    print(output_line_predicate_predict)
+
+def  train():
     pass
 
 def train_seq():

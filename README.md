@@ -66,12 +66,12 @@ sh preprocess.sh  ske
 ```
 2. ***Train Sequence Labeling & Classification Model***. Set all parameters in the file config.py and run 
 ```
-sh train_sequence_labeling.sh
-sh train_classification.sh
+sh train_seq.sh ske
+sh train_class.sh ske
 ```
 You can download the checkpoint [here](), extract and put them in the *output* folder.
 
-3. ***Predict***. Run 
+3. ***Test & Evaluation***. Run 
 
 ```
 python predict.sh ske
@@ -82,7 +82,7 @@ sh export_seq.sh ske
 sh serving_cls.sh ske
 sh serving.sh
 ```
-5. ***Test***. Run
+5. ***Interactive Prediction***. Run
 ```
 python  predict_online.py
 ```

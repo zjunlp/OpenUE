@@ -30,7 +30,7 @@ lots of NLP extraction  tasks in one easy-to-use python package.
   - Unified API for NLP Tasks with SOTA Pretrained Models (Adaptable with BERT, XLNet, etc.)
     - Entity and Realation Extraction
     - Intent and Slot Filling
-    - Opinion and Apspect Extraction
+    - Event Extraction
     - <em> More in development </em>
   - Training and Inference Interface
   - Rapid NLP Model Deployment

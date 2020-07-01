@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-<strong> OpenUE is an open-source  toolkit that provides a off-the-shelf framework to implement lots of NLP extraction tasks. 
+<strong> OpenUE is a toolkit that provides a off-the-shelf framework to implement lots of NLP extraction tasks. 
     </strong>
 </p>
 <p align="center">

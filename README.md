@@ -109,7 +109,7 @@ If you use or extend our work, please cite the following paper:
 ```
 @inproceedings{zhang-2020-opennue,
     title = "{O}pe{UE}: An Open Toolkit of Universal Extraction from Text",
-    author = "Ningyu Zhang, Shumin Deng, Zhen Bi, Hongbin Ye, Juan Li, Haiyang Yu, Luoqiu Li, Wei Zhang, Huajun Chen",
+    author = "Ningyu Zhang, Shumin Deng, Zhen Bi, Haiyang Yu, Jiacheng Yang, Mosha Chen, Fei Huang, Wei Zhang, Huajun Chen",
     year = "2020",
 }
 ```

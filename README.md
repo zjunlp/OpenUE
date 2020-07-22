@@ -12,8 +12,10 @@
 
 
     
-[![GitHub forks](https://img.shields.io/github/forks/alibaba-research/ChineseBLUE?style=flat-square&color=blueviolet)](https://github.com/alibaba-research/ChineseBLUE/network/members)
+
     <p align="center">
+    
+    [![GitHub stars](https://img.shields.io/github/stars/zjunlp/openue?style=flat-square)](https://github.com/zjunlp/openue/stargazers)
     <a href="https://badge.fury.io/py/openue">
         <img src="https://badge.fury.io/py/openue.svg">
     </a>

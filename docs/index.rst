@@ -13,8 +13,6 @@ Welcome to OpenUE's documentation!
 
    get_started/introduction
    get_started/install
-   get_started/benchmark
-   get_started/pretrain
 
 .. toctree::
    :maxdepth: 1

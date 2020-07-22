@@ -7,18 +7,18 @@ lots of NLP extraction  tasks in one easy-to-use python package.
 
 **Key Features**
 
-  * **Full Guides and API Documentation** 
+  - **Full Guides and API Documentation** 
 
-  * **Unified API for NLP Tasks with SOTA Pretrained Models** (Adaptable with BERT, XLNet, etc.)
+  -  **Unified API for NLP Tasks with SOTA Pretrained Models** (Adaptable with BERT, XLNet, etc.)
   
     - Entity and Realation Extraction
     - Intent and Slot Filling
     - Event Extraction
     - <em> More in development </em>
     
-  * **Training and Inference Interface**
-  * **Rapid NLP Model Deployment**
-  * **Dockerizing OpenUE with GPUs**
+  - **Training and Inference Interface**
+  - **Rapid NLP Model Deployment**
+  - **Dockerizing OpenUE with GPUs**
   
     - Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
 

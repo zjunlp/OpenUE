@@ -10,19 +10,21 @@ lots of NLP extraction  tasks in one easy-to-use python package.
   * **Full Guides and API Documentation** 
 
   * **Unified API for NLP Tasks with SOTA Pretrained Models** (Adaptable with BERT, XLNet, etc.)
+  
     - Entity and Realation Extraction
     - Intent and Slot Filling
     - Event Extraction
     - <em> More in development </em>
+    
   * **Training and Inference Interface**
   * **Rapid NLP Model Deployment**
   * **Dockerizing OpenUE with GPUs**
+  
     - Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
 
-How to Cite
+**How to Cite**
 -----------------------
-
-A good research work is always accompanied by a thorough and faithful reference. If you use or extend our work, please cite the following paper:
+If you use or extend our work, please cite the following paper:
 
 ::
 
@@ -32,4 +34,3 @@ A good research work is always accompanied by a thorough and faithful reference.
     year = "2020",
     }   
 
-It's our honor to help you better explore relation extraction with our OpenNRE toolkit!

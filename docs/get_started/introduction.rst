@@ -14,7 +14,7 @@ lots of NLP extraction  tasks in one easy-to-use python package.
     * Entity and Realation Extraction
     * Intent and Slot Filling
     * Event Extraction
-    * <em> More in development </em>
+    * More in development 
     
   * **Training and Inference Interface**
   * **Rapid NLP Model Deployment**

@@ -8,14 +8,10 @@
     </strong>
 </p>
 
-
-
-
-    
-
-    <p align="center">
-    
+ 
     [![GitHub stars](https://img.shields.io/github/stars/zjunlp/openue?style=flat-square)](https://github.com/zjunlp/openue/stargazers)
+ 
+    <p align="center">
     <a href="https://badge.fury.io/py/openue">
         <img src="https://badge.fury.io/py/openue.svg">
     </a>

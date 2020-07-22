@@ -7,16 +7,15 @@
 <strong> OpenUE is a toolkit that provides a off-the-shelf framework to implement lots of NLP extraction tasks. 
     </strong>
 </p>
-
- 
-    [![GitHub stars](https://img.shields.io/github/stars/zjunlp/openue?style=flat-square)](https://github.com/zjunlp/openue/stargazers)
- 
     <p align="center">
     <a href="https://badge.fury.io/py/openue">
         <img src="https://badge.fury.io/py/openue.svg">
     </a>
     <a href="https://github.com/zju/openue/blob/master/LICENSE">
         <img src="https://img.shields.io/github/license/zjunlp/openue">
+    </a>
+        <a href="http://openue.top">
+        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/transformers/index.html.svg?down_color=red&down_message=offline&up_message=online">
     </a>
 </p>
 

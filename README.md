@@ -8,10 +8,12 @@
     </strong>
 </p>
 
+
+
 <p align="center">
-    <a href="https://circleci.com/gh/zju/openue">
-        <img src="https://img.shields.io/circleci/build/github/zju/openue/master?token=c19c48a56cf6010fed1a63a9bae86acc72e91c24">
-    </a>
+    
+[![GitHub forks](https://img.shields.io/github/forks/alibaba-research/ChineseBLUE?style=flat-square&color=blueviolet)](https://github.com/alibaba-research/ChineseBLUE/network/members)
+    
     <a href="https://badge.fury.io/py/openue">
         <img src="https://badge.fury.io/py/openue.svg">
     </a>

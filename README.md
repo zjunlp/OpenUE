@@ -15,7 +15,7 @@
         <img src="https://badge.fury.io/py/openue.svg">
     </a>
     <a href="https://github.com/zju/openue/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/zju/openue">
+        <img src="https://img.shields.io/github/license/zjunlp/openue">
     </a>
 </p>
 

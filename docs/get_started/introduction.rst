@@ -20,7 +20,7 @@ lots of NLP extraction  tasks in one easy-to-use python package.
   * **Rapid NLP Model Deployment**
   * **Dockerizing OpenUE with GPUs**
   
-    * Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
+   * Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
 
 **How to Cite**
 -----------------------

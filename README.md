@@ -1,6 +1,6 @@
-[**中文说明**](https://github.com/zxlzr/OpenUE/blob/master/README_CN.md) | [**English**](https://github.com/zxlzr/OpenUE/)
+[**中文说明**](https://github.com/zjunlp/openue/blob/master/README_CN.md) | [**English**](https://github.com/zjunlp/openue/)
 <p align="center">
-    <a href="https://github.com/zxlzr/OpenUE"> <img src="https://raw.githubusercontent.com/zxlzr/OpenUE/master/docs/img/logo.jpg" width="400"/></a>
+    <a href="https://github.com/zjunlp/openue"> <img src="https://raw.githubusercontent.com/zjunlp/openue/master/docs/img/logo.jpg" width="400"/></a>
 </p>
 
 <p align="center">
@@ -8,14 +8,14 @@
     </strong>
 </p>
 <p align="center">
-    <a href="https://circleci.com/gh/zxlzr/OpenUE">
-        <img src="https://img.shields.io/circleci/build/github/zxlzr/OpenUE/master?token=c19c48a56cf6010fed1a63a9bae86acc72e91c24">
+    <a href="https://circleci.com/gh/zju/openue">
+        <img src="https://img.shields.io/circleci/build/github/zju/openue/master?token=c19c48a56cf6010fed1a63a9bae86acc72e91c24">
     </a>
     <a href="https://badge.fury.io/py/openue">
         <img src="https://badge.fury.io/py/openue.svg">
     </a>
-    <a href="https://github.com/zxlzr/OpenUE/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/zxlzr/OpenUE">
+    <a href="https://github.com/zju/openue/blob/master/LICENSE">
+        <img src="https://img.shields.io/github/license/zju/openue">
     </a>
 </p>
 
@@ -38,7 +38,7 @@ lots of NLP extraction  tasks in one easy-to-use python package.
     - Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
 ## Environment
   - python3.6
-  - [requirements.txt](https://github.com/zxlzr/OpenUE/blob/master/requirements.txt) 
+  - [requirements.txt](https://github.com/zju/openue/blob/master/requirements.txt) 
 
 ## Quick Start
 
@@ -61,7 +61,7 @@ Once you have installed OpenUE, here are a few examples of what you can run with
 1. ***Data Preprocessing***. Put the pretrined language model (e.g., [BERT](https://github.com/google-research/bert)) in the ***pretrained_model*** folder and put all raw data (run script download_ske.sh in the benchmark folder) in the ***raw_data folder***, run
 ```
 sh download_ske_dataset.sh
-sh download_pretrain_cn_bert.sh
+sh download_bert_cn.sh
 sh preprocess.sh  ske
 ```
 2. ***Train Sequence Labeling & Classification Model***. Set all parameters in the file config.py and run 
@@ -69,7 +69,6 @@ sh preprocess.sh  ske
 sh train_seq.sh ske
 sh train_class.sh ske
 ```
-You can download the checkpoint [here](), extract and put them in the *output* folder.
 
 3. ***Test & Evaluation***. Run 
 

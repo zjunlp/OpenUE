@@ -3,9 +3,9 @@ import sys
 
 def get_latest_model_predict_data_dir(new_epochs_ckpt_dir=None):
     def new_report(test_report):
-        lists = os.listdir(test_report)  # 列出目录的下所有文件和文件夹保存到lists
-        lists.sort(key=lambda fn: os.path.getmtime(test_report + "/" + fn))  # 按时间排序
-        file_new = os.path.join(test_report, lists[-1])  # 获取最新的文件保存到file_new
+        lists = os.listdir(test_report)  
+        lists.sort(key=lambda fn: os.path.getmtime(test_report + "/" + fn)) 
+        file_new = os.path.join(test_report, lists[-1]) 
         return file_new
     if new_epochs_ckpt_dir is None:
         input_new_epochs = os.path.join(
@@ -67,16 +67,12 @@ def prepare_data_for_subject_object_labeling_infer(predicate_classifiction_input
             output_text_file_write.write(text.replace("\n", "") + "\t" + predicate + "\n")
             output_token_in_file_write.write(token_in.replace("\n", "") + "\t" + predicate + "\n")
             output_token_in_not_UNK_file_write.write(token_in_not_UNK.replace("\n", "") + "\t" + predicate + "\n")
-    print("empty_line: {}, line: {}, empty percentage: {:.2f}%".format(count_empty_line, count_line, (count_empty_line/count_line) *100))
-    print("temporary_one_predicate_line: ", count_temporary_one_predicate_line)
-    print("输入文件行数：", count_line)
-    print("转换成一个text 对应一个 predicate 之后行数变为：", count_temporary_one_predicate_line)
 
 
 if __name__=="__main__":
     predicate_classifiction_input_file_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../classification/classification_data/"+ sys.argv[1] +"/test"))
     #predicate_classifiction_infer_file_dir = "output/predicate_infer_out/epochs6/ckpt23000"
-    predicate_classifiction_infer_file_dir = None #None表示使用最新模型输出
+    predicate_classifiction_infer_file_dir = None 
     out_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../sequence_labeling/sequence_labeling_data/"+ sys.argv[1] +"/test"))
     prepare_data_for_subject_object_labeling_infer(predicate_classifiction_input_file_dir,
                                                    predicate_classifiction_infer_file_dir, out_file)

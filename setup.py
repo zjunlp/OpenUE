@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="openue",
-    version="0.0.2",
+    version="0.0.3",
     author="zxlzr",
     author_email="jack16900@gmail.com",
-    description="Universal extractor for text.",
+    description="An open toolkit of universal extraction from text.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/zxlzr/openue",
+    url="https://github.com/zjunlp/openue",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

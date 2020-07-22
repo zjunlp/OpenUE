@@ -585,6 +585,7 @@ def get_model(model_name):
         download_model(model_ip,'ske')
 
 def infer(line):
+    return ""
     bert_config = modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
     processor1 = Multi_Label_Classification_Processor()
     label_list = processor1.get_labels()

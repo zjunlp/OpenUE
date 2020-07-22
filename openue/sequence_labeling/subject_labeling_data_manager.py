@@ -9,10 +9,10 @@ from config import config
 
 class Model_data_preparation(object):
 
-    def __init__(self, DATA_INPUT_DIR="raw_data", DATA_OUTPUT_DIR="SKE_2019_tokened_labeling",
+    def __init__(self, DATA_INPUT_DIR="raw_data", DATA_OUTPUT_DIR="",
                  vocab_file_path="vocab.txt", do_lower_case=True,General_Mode = False):
         self.bert_tokenizer = tokenization.FullTokenizer(vocab_file=self.get_vocab_file_path(vocab_file_path),
-                                                         do_lower_case=do_lower_case)  # 初始化 bert_token 工具
+                                                         do_lower_case=do_lower_case)  
         self.DATA_INPUT_DIR = self.get_data_input_dir(DATA_INPUT_DIR)
         self.DATA_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), DATA_OUTPUT_DIR)
         self.General_Mode = General_Mode
@@ -79,14 +79,9 @@ class Model_data_preparation(object):
             idx_start = _index_q_list_in_k_list(q_list=so_tokened, k_list=text_tokened)
             if idx_start is None:
                 tokener_error_flag = True
-                '''
-                实体: "1981年"  原句: "●1981年2月27日，中国人口学会成立"
-                so_tokened ['1981', '年']  text_tokened ['●', '##19', '##81', '年', '2', '月', '27', '日', '，', '中', '国', '人', '口', '学', '会', '成', '立']
-                so_tokened 无法在 text_tokened 找到！原因是bert_tokenizer.tokenize 分词增添 “##” 所致！
-                '''
                 self.bert_tokener_error_log_f.write(subject_object + " @@ " + text + "\n")
                 self.bert_tokener_error_log_f.write(str(so_tokened) + " @@ " + str(text_tokened) + "\n")
-            else: #给实体开始处标 B 其它位置标 I
+            else: 
                 labeling_list[idx_start] = "B-" + so_type
                 if so_tokened_length == 2:
                     labeling_list[idx_start + 1] = "I-" + so_type
@@ -117,9 +112,7 @@ class Model_data_preparation(object):
                     if flag_A:
                         tokener_error_flag = True
 
-            #给被bert_tokenizer.tokenize 拆分的词语打上特殊标签[##WordPiece]
             for idx, token in enumerate(text_tokened):
-                """标注被 bert_tokenizer.tokenize 拆分的词语"""
                 if token.startswith("##"):
                     labeling_list[idx] = "[##WordPiece]"
             if not tokener_error_flag:

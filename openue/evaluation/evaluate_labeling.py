@@ -8,9 +8,6 @@ def del_bookname(entity_name):
         entity_name = entity_name[1:-1]
     return entity_name
 
-
-
-
 def load_result(predict_filename):
     result_dict = {}
     with open(predict_filename) as gf:
@@ -27,7 +24,6 @@ def load_result(predict_filename):
             result_dict[sent] = spo_result
     return result_dict
 
-
 def load_dict(dict_filename):
     """load alias dict"""
     alias_dict = {}
@@ -39,7 +35,6 @@ def load_dict(dict_filename):
             for alias_word in words[1:]:
                 alias_dict[words[0].lower()].add(alias_word.lower())
     return alias_dict
-
 
 def is_spo_correct(spo, golden_spo_set, alias_dict, loc_dict):
     """if the spo is correct"""

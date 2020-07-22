@@ -5,9 +5,9 @@ from config import config
 
 def get_latest_model_predict_data_dir(new_epochs_ckpt_dir=None):
     def new_report(test_report):
-        lists = os.listdir(test_report)  # 列出目录的下所有文件和文件夹保存到lists
-        lists.sort(key=lambda fn: os.path.getmtime(test_report + "/" + fn))  # 按时间排序
-        file_new = os.path.join(test_report, lists[-1])  # 获取最新的文件保存到file_new
+        lists = os.listdir(test_report)  
+        lists.sort(key=lambda fn: os.path.getmtime(test_report + "/" + fn)) 
+        file_new = os.path.join(test_report, lists[-1])  
         return file_new
     if new_epochs_ckpt_dir is None:
         input_new_epochs = os.path.join(
@@ -16,10 +16,9 @@ def get_latest_model_predict_data_dir(new_epochs_ckpt_dir=None):
         input_new_epochs_ckpt = os.path.join(input_new_epochs, new_ckpt_dir)
         new_epochs_ckpt_dir = new_report(input_new_epochs_ckpt)
     if not os.path.exists(new_ckpt_dir):
-        raise ValueError("路径不存在！{}".format(new_epochs_ckpt_dir))
+        raise ValueError("path do not exist！{}".format(new_epochs_ckpt_dir))
     return new_epochs_ckpt_dir
 
-# dict is comes from raw_data all_50_schemas
 schemas_dict_relation_2_object_subject_type = config.schema
 
 class File_Management(object):
@@ -55,8 +54,6 @@ class File_Management(object):
             content_list_length_summary = [(file_name, len(content_list)) for content_list, file_name in
                                            zip(content_list_summary, file_name_list)]
             file_line_number = self._check_file_line_numbers(content_list_length_summary)
-            print("Competition_Mode=True, check file line pass!")
-            print("输入文件行数一致，行数是: ", file_line_number)
         else:
             file_line_number = len(content_list_summary[0])
             print("first file line number: ", file_line_number)
@@ -76,8 +73,6 @@ class Sorted_relation_and_entity_list_Management(File_Management):
         File_Management.__init__(self, TEST_DATA_DIR=TEST_DATA_DIR, MODEL_OUTPUT_DIR=MODEL_OUTPUT_DIR, Competition_Mode=Competition_Mode)
         self.relationship_label_list = config.class_label
         self.Competition_Mode = Competition_Mode
-        print("test数据输入路径是:\t{}".format(self.TEST_DATA_DIR))
-        print("最新模型预测结果路径是:\t{}".format(self.MODEL_OUTPUT_DIR))
 
     def get_input_list(self,):
         content_list_summary, self.file_line_number = self.read_file_return_content_list()
@@ -196,7 +191,6 @@ class Sorted_relation_and_entity_list_Management(File_Management):
             out_path = filename
         else:
             out_path = os.path.join(OUT_RESULTS_DIR, filename)
-        print("生成结果的输出路径是:\t{}".format(out_path))
         if not os.path.exists(OUT_RESULTS_DIR):
             os.makedirs(OUT_RESULTS_DIR)
         result_json_write_f = open(out_path, "w", encoding='utf-8')

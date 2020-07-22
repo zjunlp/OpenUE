@@ -1,8 +1,7 @@
 import os
 
-golden_file_path = '/home/ningyu.zny/work/OpenUE/openue/classification/classification_data/test/predicate_out.txt'
+golden_file_path = '/home/ningyu.zny/work/openue/classification/classification_data/test/predicate_out.txt'
 
-#获取标准答案文件路径
 def get_golden_file_path(golden_file_path=None):
     if golden_file_path is None:
         golden_file_dir = os.path.join(
@@ -12,27 +11,21 @@ def get_golden_file_path(golden_file_path=None):
     return golden_file_path
 
 
-# 获取最新模型预测数据路径
 def get_latest_model_predict_data_path(predicate_predict_file_path=None):
-    # 获取文件下最新文件路径
     def new_report(test_report):
-        lists = os.listdir(test_report)  # 列出目录的下所有文件和文件夹保存到lists
-        lists.sort(key=lambda fn: os.path.getmtime(test_report + "/" + fn))  # 按时间排序
-        file_new = os.path.join(test_report, lists[-1])  # 获取最新的文件保存到file_new
+        lists = os.listdir(test_report)  
+        lists.sort(key=lambda fn: os.path.getmtime(test_report + "/" + fn)) 
+        file_new = os.path.join(test_report, lists[-1])  
         return file_new
     if predicate_predict_file_path is None:
-        # 获取分类预测输出文件路径
         input_new_epochs = os.path.join(
                 os.path.abspath(os.path.join(os.path.dirname(__file__), "../../output")), "predicate_infer_out")
-        # 获取最新周期文件路径
         new_ckpt_dir = new_report(input_new_epochs)
         input_new_epochs_ckpt = os.path.join(input_new_epochs, new_ckpt_dir)
-        # 获取最新周期下最新模型文件路径
         input_new_epochs_ckpt_dir = new_report(input_new_epochs_ckpt)
-        # 获取最新预测文件的路径
         predicate_predict_file_path = os.path.join(input_new_epochs_ckpt_dir, "predicate_predict.txt")
     if not os.path.exists(new_ckpt_dir):
-        raise ValueError("路径不存在！{}".format(new_ckpt_dir))
+        raise ValueError("path do not exist！{}".format(new_ckpt_dir))
     return predicate_predict_file_path
 
 

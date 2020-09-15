@@ -4,7 +4,7 @@ class config():
     max_len = '128'
     pretrain_model_dir = ''
     home_dir = os.getcwd() + '/'
-    data_dir = home_dir + 'raw_data/med_cn/'
+    data_dir = home_dir + 'raw_data/ske/'
     tf_serving_addr = '127.0.0.1:8501'
     bert_vocab_dir = home_dir + 'pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/vocab.txt'
     bert_config_dir =home_dir + 'pretrained_model/chinese_wwm_ext_L-12_H-768_A-12/bert_config.json'

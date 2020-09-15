@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-<strong> OpenUE is a toolkit that provides a off-the-shelf framework to implement lots of NLP extraction tasks. 
+<strong> OpenUE 是一个提供了大量通用抽取功能的工具包。
     </strong>
 </p>
     <p align="center">
@@ -19,32 +19,30 @@
     </a>
 </p>
 
+OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于python 初学者或有经验的机器学习开发人员。
 
-OpenUE allows users ranging from beginner python coders to experienced machine learning engineers to leverage
-lots of NLP extraction  tasks in one easy-to-use python package.
+**特点**
 
-**Key Features**
+  - [用户文档](https://openue-docs.readthedocs.io/en/latest/) 
 
-  - [Full Guides and API Documentation](https://openue-docs.readthedocs.io/en/latest/) 
-
-  - Unified API for NLP Tasks with SOTA Pretrained Models (Adaptable with BERT, XLNet, etc.)
-    - Entity and Realation Extraction
-    - Intent and Slot Filling
-    - Event Extraction
-    - <em> More in development </em>
-  - Training and Inference Interface
-  - Rapid NLP Model Deployment
-  - [Dockerizing OpenUE with GPUs](https://hub.docker.com/r/)
-    - Easily build and run OpenUE containers leveraging NVIDIA GPUs with Docker
-## Environment
+  - 基于SOTA模型的NLP抽取任务 (兼容BERT, XLNet等预训练模型.)
+    - 实体关系抽取
+    - 意图识别和槽位填充
+    - 事件抽取
+    - <em> 更多的任务 </em>
+  - 训练和测试接口
+  - 快速部署NLP模型
+  - [容器部署](https://hub.docker.com/r/)
+    - 敏捷部署支持GPU的容器
+## 环境
   - python3.6
-  - [requirements.txt](https://github.com/zjunlp/openue/blob/master/requirements.txt) 
+  - [requirements.txt](https://github.com/zju/openue/blob/master/requirements.txt) 
 
-## Quick Start
+## 快速开始
 
-#### Requirements and Installation
+#### 安装
 
-##### Anaconda Environment
+##### Anaconda 环境
 
 ```
 conda create -n openue python=3.6
@@ -52,44 +50,44 @@ conda activate openue
 conda install  --file requirements.txt 
 ```
 
-#### Examples and General Use
+#### 使用方式
 
-Once you have installed OpenUE, here are a few examples of what you can run with OpenUE modules:
+用户可通过以下几个简单的步骤实现基于OpenUE的抽取模型训练和部署
 
 ##### Entity and Relation Extraction Example
 
-1. ***Data Preprocessing***. Put the pretrined language model (e.g., [BERT](https://github.com/google-research/bert)) in the ***pretrained_model*** folder and put all raw data (run script download_ske.sh in the benchmark folder) in the ***raw_data folder***, run
+1. ***数据预处理***. 下载预训练语言模型 (e.g., [BERT](https://github.com/google-research/bert)) 并放置到 ***pretrained_model*** 文件夹，下载训练数据 and put all raw data 并放到 ***raw_data folder***, 运行以下脚本
 ```
 sh download_ske_dataset.sh
 sh download_bert_cn.sh
 sh preprocess.sh  ske
 ```
-2. ***Train Sequence Labeling & Classification Model***. Set all parameters in the file config.py and run 
+2. ***训练分类和序列标注模型***. 在config.py文件配置好参数，并运行 
 ```
 sh train_seq.sh ske
 sh train_class.sh ske
 ```
 
-3. ***Test & Evaluation***. Run 
+3. ***测试和评估***. 运行
 
 ```
 python predict.sh ske
 ```
-4. ***Export & Serving***. Run
+4. ***导出和服务化***. 运行
 ```
 sh export_seq.sh ske
 sh serving_cls.sh ske
 sh serving.sh
 ```
-5. ***Interactive Prediction***. Run
+5. ***交互式预测***. 运行
 ```
 python  predict_online.py
 ```
-6. ***Demo***.Run
+6. ***在线演示***.运行
 ```
 python app.py  ske
 ```
-## Tools
+## 工具
 
 ```python
 >>> import openuee
@@ -98,12 +96,12 @@ python app.py  ske
 >>> print(res)
 "spo_list": [{"object_type": "人物", "predicate": "作曲", "object": "黄沾", "subject_type": "歌曲", "subject": "上海滩"}, {"object_type": "音乐专辑", "predicate": "所属专辑", "object": "【歌单】酷我热门单曲合辑", "subject_type": "歌曲", "subject": "上海滩"}, {"object_type": "人物", "predicate": "歌手", "object": "刘德华", "subject_type": "歌曲", "subject": "上海滩"}]
 ```
-Note that it may take a few minutes to download checkpoint and data for the first time. Then use `infer` to do sentence-level entity and relation extraction
+请注意，第一次下载检查点和数据可能要花费几分钟。 然后使用`infer`进行句子级实体和关系提取。
 
 
-## How to Cite
+## 引用
 
-If you use or extend our work, please cite the following paper:
+如果您使用或扩展我们的工作，请引用以下文章：
 
 ```
 @inproceedings{zhang-2020-opennue,

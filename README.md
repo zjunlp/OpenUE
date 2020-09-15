@@ -78,7 +78,7 @@ python predict.sh ske
 4. ***Export & Serving***. Run
 ```
 sh export_seq.sh ske
-sh serving_cls.sh ske
+sh export_class.sh ske
 sh serving.sh
 ```
 5. ***Interactive Prediction***. Run

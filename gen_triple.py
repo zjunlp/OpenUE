@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import sys
 import json
 from config import config
 
@@ -24,7 +25,8 @@ schemas_dict_relation_2_object_subject_type = config.schema
 class File_Management(object):
     def __init__(self, TEST_DATA_DIR=None, MODEL_OUTPUT_DIR=None, Competition_Mode=True):
         self.TEST_DATA_DIR = TEST_DATA_DIR
-        self.MODEL_OUTPUT_DIR = get_latest_model_predict_data_dir(MODEL_OUTPUT_DIR)
+        #self.MODEL_OUTPUT_DIR = get_latest_model_predict_data_dir(MODEL_OUTPUT_DIR)
+        self.MODEL_OUTPUT_DIR = MODEL_OUTPUT_DIR
         self.Competition_Mode = Competition_Mode
 
     def file_path_and_name(self):
@@ -209,12 +211,10 @@ class Sorted_relation_and_entity_list_Management(File_Management):
             else:
                 if len(spo_list) > 0:
                     result_json_write_f.write(line_json + "\n")
-        print("empty_line: {}, line: {}, percentage: {:.2f}%".format(count_empty_line_number, count_line_number,
 
-if __name__=='__main__':
-    TEST_DATA_DIR = "openue/sequence_labeling/sequence_labeling_data/" + sys.argv[1] + "test"
-    # MODEL_OUTPUT_DIR = "output/sequnce_infer_out/epochs9/ckpt20000"
-    MODEL_OUTPUT_DIR = None
+if __name__ == '__main__': 
+    TEST_DATA_DIR = "openue/sequence_labeling/sequence_labeling_data/" + sys.argv[1] + "/test/"
+    MODEL_OUTPUT_DIR = "output/sequnce_infer_out/wwm/epoch9/"
     OUT_RESULTS_DIR = "output/predict_text_spo_list_result"
     Competition_Mode = True
     spo_list_manager = Sorted_relation_and_entity_list_Management(TEST_DATA_DIR, MODEL_OUTPUT_DIR, Competition_Mode=Competition_Mode)

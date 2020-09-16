@@ -34,13 +34,8 @@ def load_predict_result(predict_filename):
     """Loads the file to be predicted"""
     predict_result = {}
     ret_code = SUCCESS
-    try:
-        predict_file_zip = zipfile.ZipFile(predict_filename)
-    except:
-        ret_code = FILE_ERROR
-        return predict_result, ret_code
-    for predict_file in predict_file_zip.namelist():
-        for line in predict_file_zip.open(predict_file):
+    if True:
+        for line in open(predict_filename,encoding='utf-8'):
             try:
                 line = line.strip()
             except:

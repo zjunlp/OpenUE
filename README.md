@@ -92,7 +92,7 @@ python app.py  ske
 ## Tools
 
 ```python
->>> import openuee
+>>> import openue
 >>> model = openue.get_model('ske_bert_entity_relation')
 >>> res = model.infer('《上海滩》是刘德华的音乐作品，黄沾作曲，收录在《【歌单】酷我热门单曲合辑》专辑中')
 >>> print(res)
@@ -100,6 +100,7 @@ python app.py  ske
 ```
 Note that it may take a few minutes to download checkpoint and data for the first time. Then use `infer` to do sentence-level entity and relation extraction
 
+## Acknowledgement
 
 ## How to Cite
 

@@ -5,7 +5,7 @@ import importlib
 import numpy as np
 import torch
 import pytorch_lightning as pl
-import lit_models
+import openue.lit_models as lit_models
 import yaml
 import time
 from transformers import AutoConfig
@@ -45,8 +45,8 @@ def _setup_parser():
 
     # Get the data and model classes, so that we can add their specific arguments
     temp_args, _ = parser.parse_known_args()
-    data_class = _import_class(f"data.{temp_args.data_class}")
-    model_class = _import_class(f"models.{temp_args.model_class}")
+    data_class = _import_class(f"openue.data.{temp_args.data_class}")
+    model_class = _import_class(f"openue.models.{temp_args.model_class}")
 
     # Get data, model, and LitModel specific arguments
     data_group = parser.add_argument_group("Data Args")
@@ -68,9 +68,9 @@ def main():
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    data_class = _import_class(f"data.{args.data_class}")
-    model_class = _import_class(f"models.{args.model_class}")
-    litmodel_class = _import_class(f"lit_models.{args.litmodel_class}")
+    data_class = _import_class(f"openue.data.{args.data_class}")
+    model_class = _import_class(f"openue.models.{args.model_class}")
+    litmodel_class = _import_class(f"openue.lit_models.{args.litmodel_class}")
 
     data = data_class(args)
 

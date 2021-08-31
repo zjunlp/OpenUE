@@ -15,8 +15,8 @@ from transformers.optimization import (
 )
 from transformers import AutoConfig, AutoTokenizer
 from functools import partial
-from models import BertForRelationClassification, BertForNER
-from data import get_labels_ner
+from openue.models import BertForRelationClassification, BertForNER
+from openue.data import get_labels_ner
 
 from functools import partial
 

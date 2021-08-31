@@ -1,5 +1,5 @@
 import numpy as np 
-from data import precision_score, recall_score, f1_score
+from openue.data import precision_score, recall_score, f1_score
 from typing import Tuple, List, Dict
 
 

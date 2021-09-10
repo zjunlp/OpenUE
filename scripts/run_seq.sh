@@ -1,4 +1,4 @@
-python main.py --gpus "0," --max_epochs 30  \
+python main.py --gpus "0," --max_epochs 1  \
     --data_class REDataset \
     --litmodel_class SEQLitModel \
     --model_class BertForRelationClassification \

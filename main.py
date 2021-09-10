@@ -37,11 +37,10 @@ def _setup_parser():
     # Basic arguments
     parser.add_argument("--wandb", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--litmodel_class", type=str, default="TransformerLitModel")
-    parser.add_argument("--data_class", type=str, default="DIALOGUE")
+    parser.add_argument("--litmodel_class", type=str, default="SEQLitModel")
+    parser.add_argument("--data_class", type=str, default="REDataset")
     parser.add_argument("--model_class", type=str, default="bert.BertForSequenceClassification")
     parser.add_argument("--load_checkpoint", type=str, default=None)
-    parser.add_argument("--task", type=str, default="ner")
 
     # Get the data and model classes, so that we can add their specific arguments
     temp_args, _ = parser.parse_known_args()
@@ -75,7 +74,6 @@ def main():
     data = data_class(args)
 
     lit_model = litmodel_class(args=args, data_config=data.get_config())
-    
 
 
     logger = pl.loggers.TensorBoardLogger("training/logs")

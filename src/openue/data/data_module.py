@@ -32,6 +32,7 @@ class REDataset(BaseDataModule):
             os.system("tar zxvf ske.tar.gz -C ske")
             os.system("mv ske ./dataset")
             os.system("rm ske.tar.gz")
+            os.system("mv ./dataset/ske/val.json ./dataset/ske/dev.json")
 
         pass
 

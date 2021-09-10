@@ -139,11 +139,24 @@ class BertForNER(trans.BertPreTrainedModel):
 
 
 class Inference(torch.nn.Module):
+    """
+        input the text, 
+        return the triples
+    """
     def __init__(self, args):
         self.args = args
         # init the labels
         self._init_labels()    
         self._init_models()
+        
+        
+        self.mode = "event" if "event" in args.task_name else "triple"
+        
+        if self.mode == "event":
+            self.process = self.event_process
+        else:
+            self.process = self.normal_process
+        
      
     
     def _init_labels(self):
@@ -215,25 +228,18 @@ class Inference(torch.nn.Module):
             # [batch_size, 50]
             # relation_output_sigmoid = outputs_seq[1]
             relation_output_sigmoid = outputs_seq[0]
-            if True:
-                # 多关系预测
-                relation_output_sigmoid_ = relation_output_sigmoid > 0.5
-                # # 这个0.5是超参数，超参数
-                if torch.sum(relation_output_sigmoid_).tolist() == 0:
-                    idx = torch.max(relation_output_sigmoid, dim=1)[1].tolist()[0]
-                    relation_output_sigmoid_[0][idx] = 1
 
-                # [batch_size, 50]
-                relation_output_sigmoid_ = relation_output_sigmoid_.long()
-                # [batch_size * 50, ]
-                relation_output_sigmoid_index = relation_output_sigmoid_.view(-1)
-            else:
-                # 单关系预测
-                relation_output_sigmoid_ = torch.max(relation_output_sigmoid, dim=1)[1]
-                tmp1 = torch.zeros(batch_size, num_relations, device=training_args.device)
-                relation_output_sigmoid_index = tmp1.scatter_(dim=1, index=relation_output_sigmoid_.view(-1, 1).long(), value=1)
-                # [batch_size * 50, ]
-                relation_output_sigmoid_index = relation_output_sigmoid_index.view(-1).long()
+            # 多关系预测
+            relation_output_sigmoid_ = relation_output_sigmoid > 0.5
+            # # 这个0.5是超参数，超参数
+            if torch.sum(relation_output_sigmoid_).tolist() == 0:
+                idx = torch.max(relation_output_sigmoid, dim=1)[1].tolist()[0]
+                relation_output_sigmoid_[0][idx] = 1
+
+            # [batch_size, 50]
+            relation_output_sigmoid_ = relation_output_sigmoid_.long()
+            # [batch_size * 50, ]
+            relation_output_sigmoid_index = relation_output_sigmoid_.view(-1)
 
             index_ = torch.arange(0, num_relations).to(self.device)
             index_ = index_.expand(batch_size, num_relations)
@@ -339,31 +345,36 @@ class Inference(torch.nn.Module):
             index = 0
             triple_output = []
 
-            for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
-                labels = self.process(ids, BIOS)
-                # r = label_map_seq[predict_relation_list[index]]
-                r = predict_relation_list[index]
+            # for each relation type or event type
+            if self.mode == "triple":
+                for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
+                    labels = self.process(ids, BIOS)
+                    # r = label_map_seq[predict_relation_list[index]]
+                    r = predict_relation_list[index]
 
-                if len(labels['subject']) == 0:
-                    h = None
-                else:
-                    h = labels['subject'][0]
-                    # h = ''.join(tokenizer.convert_ids_to_tokens(h))
+                    if len(labels['subject']) == 0:
+                        h = None
+                    else:
+                        h = labels['subject'][0]
+                        # h = ''.join(tokenizer.convert_ids_to_tokens(h))
 
-                if len(labels['object']) == 0:
-                    t = None
-                else:
-                    t = labels['object'][0]
-                    # t = ''.join(tokenizer.convert_ids_to_tokens(t))
+                    if len(labels['object']) == 0:
+                        t = None
+                    else:
+                        t = labels['object'][0]
+                        # t = ''.join(tokenizer.convert_ids_to_tokens(t))
 
-                triple_output.append(OutputExample(h=h, r=r, t=t))
+                    triple_output.append(OutputExample(h=h, r=r, t=t))
 
-                index = index + 1
+                    index = index + 1
+            elif self.mode == "event":
+                for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
+                    triple_output.append(dict(event_type=predict_relation_list[index], argument=self.process(ids, BIOS)))
 
             return triple_output, inputs['label_ids']
         
     @staticmethod 
-    def process(text, result):
+    def normal_process(text, result):
         index = 0
         start = None
         labels = {}
@@ -389,3 +400,39 @@ class Inference(torch.nn.Module):
             index += 1
         # print(labels)
         return labels
+    
+    
+    @staticmethod 
+    def event_process(text, result):
+        """
+        return List[Dict(text, label)]
+        """
+        index = 0
+        start = None
+        labels = []
+        indicator = ''
+        for w, t in zip(text, result):
+            # ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation"
+            if start is None:
+                if "B-" in t:
+                    # get the label name
+                    indicator = t.split("-")[-1]
+                    start = index
+            else:
+                if t.split("-")[-1] != indicator or "B-" in t:
+                    # B-a I-b wrong, B-a B-a wrong
+                    start = None
+                elif t == "O":
+                    # print(result[start: index])
+                    labels.append(dict(text=text[start: index], label=indicator))
+                    start = None
+            index += 1
+        # print(labels)
+        return labels
+    
+    @staticmethod
+    def add_to_argparse(parser):
+        parser.add_argument("--seq_model_name_or_path", type=str, default="seq_model")
+        parser.add_argument("--ner_model_name_or_path", type=str, default="ner_model")
+        
+        return parser

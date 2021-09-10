@@ -6,6 +6,8 @@ import torch.nn.functional as F
 # Hide lines below until Lab 5
 import wandb
 import numpy as np
+
+from openue.models.model import Inference
 # Hide lines above until Lab 5
 
 from .base import BaseLitModel
@@ -147,3 +149,28 @@ class SEQLitModel(BaseLitModel):
 
 
 
+class INFERLitModel(BaseLitModel):
+    def __init__(self, args, data_config):
+        super().__init__(args, data_config)
+
+        self._init_model()
+
+    def forward(self, x):
+        return self.model(x)
+
+    def _init_model(self):
+        #TODO put the parameters from the data_config to the config, maybe use the __dict__?
+        self.model = Inference(self.args)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
+
+    def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
+        loss, _, logits, _ = self.model(**batch)
+        return {"test_logits": logits.detach().cpu().numpy(), "test_labels": batch['label_ids_seq'].detach().cpu().numpy()}
+
+    def test_epoch_end(self, outputs) -> None:
+        logits = np.concatenate([o["test_logits"] for o in outputs], axis=0)
+        labels = np.concatenate([o["test_labels"] for o in outputs], axis=0)
+
+        result = self.eval_fn(logits, labels)
+        f1 = result['f1']
+        self.log("Test/f1", f1)

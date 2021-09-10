@@ -26,7 +26,7 @@ class BaseDataModule(pl.LightningDataModule):
     Learn more at https://pytorch-lightning.readthedocs.io/en/stable/datamodules.html
     """
 
-    def __init__(self, args: argparse.Namespace = None) -> None:
+    def __init__(self, args) -> None:
         super().__init__()
         self.args = Config(vars(args)) if args is not None else {}
         self.batch_size = self.args.get("batch_size", BATCH_SIZE)
@@ -42,7 +42,7 @@ class BaseDataModule(pl.LightningDataModule):
             "--num_workers", type=int, default=NUM_WORKERS, help="Number of additional processes to load data."
         )
         parser.add_argument(
-            "--data_dir", type=str, default="./dataset/dialogue", help="Number of additional processes to load data."
+            "--data_dir", type=str, default="./dataset/ske", help="Number of additional processes to load data."
         )
         parser.add_argument(
             "--overwrite_cache", action="store_true"

@@ -627,6 +627,9 @@ def convert_examples_to_interactive_features(
 
     return features
 
+
+
+
 def get_labels_ner() -> List[str]:
     return ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation"]
 

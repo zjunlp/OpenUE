@@ -208,14 +208,17 @@ class Inference(torch.nn.Module):
         )
 
     def forward(self, inputs):
+        """
+        两种方案，一种直接所有relation搞起来，一种使用动态batch size, 针对出现的relation进行forward
+        
+        """
         for k, v in inputs.items():
             if isinstance(v, torch.Tensor):
                 inputs[k] = v.to(self.device)
 
-        inputs_seq = {'input_ids': inputs['input_ids_seq'],
-                    'token_type_ids': inputs['token_type_ids_seq'],
-                    'attention_mask': inputs['attention_mask_seq'],
-                    # 'label_ids_seq': inputs['label_ids_seq']
+        inputs_seq = {'input_ids': inputs['input_ids'],
+                    'token_type_ids': inputs['token_type_ids'],
+                    'attention_mask': inputs['attention_mask'],
                     }
 
         with torch.no_grad():
@@ -252,8 +255,8 @@ class Inference(torch.nn.Module):
             # 需要拼接的部4：[0]
             cat_zero = torch.full((relation_output_sigmoid_number.shape[0], 1), 0).long().to(self.device)
 
-            # 拼接input_ids_seq的输入
-            input_ids_ner = torch.unsqueeze(inputs['input_ids_seq'], 1)
+            # 需要原来的input_ids 扩展到relation num维度。
+            input_ids_ner = torch.unsqueeze(inputs['input_ids'], 1)
             # [batch_size, 50, max_length], 复制50份
             input_ids_ner = input_ids_ner.expand(-1, len(self.label_map_seq.keys()), -1)
             # [batch_size * 50, max_length]

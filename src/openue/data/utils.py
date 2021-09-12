@@ -5,7 +5,7 @@ import logging
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import numpy as np
 
@@ -178,16 +178,11 @@ class InputFeatures:
 
 @dataclass
 class InputFeatures_Interactive:
-    input_ids_seq: List[int]
-    attention_mask_seq: List[int]
-    token_type_ids_seq: Optional[List[int]]
-    # label_ids_seq: Optional[List[int]]
+    input_ids: List[int] = None
+    attention_mask: List[int] = None
+    token_type_ids: List[int] = None
+    triples: List[List[int]] = None
 
-    input_ids_ner: List[int]
-    attention_mask_ner: List[int]
-    token_type_ids_ner: Optional[List[int]]
-    label_ids_ner: Optional[List[int]]
-    label_ids: List = None
 
 
 class Split(Enum):
@@ -499,23 +494,15 @@ def convert_examples_to_ner_features(
     # print('语料有问题句子比例是', str(counter/len(examples)))
     return features
 
+
+
 def convert_examples_to_interactive_features(
     examples: List[InputExample],
     labels_seq: List[str],
     labels_ner: List[str],
     max_seq_length: int,
     tokenizer: PreTrainedTokenizer,
-    cls_token_at_end=False,
-    cls_token="[CLS]",
-    cls_token_segment_id=1,
-    sep_token="[SEP]",
-    sep_token_extra=False,
-    pad_on_left=False,
-    pad_token=0,
-    pad_token_segment_id=0,
-    pad_token_label_id=-100,
-    sequence_a_segment_id=0,
-    mask_padding_with_zero=True,
+    rel2id: Dict =None
 ):
     label_map_seq = {label: i for i, label in enumerate(labels_seq)}
     label_map_ner = {label: i for i, label in enumerate(labels_ner)}
@@ -523,110 +510,54 @@ def convert_examples_to_interactive_features(
     features = []
     counter = 0
 
-    def find_word_in_texts(word_ids, texts_ids):
-        length = len(word_ids)
-        for i, W in enumerate(texts_ids):
-            if texts_ids[i] == word_ids[0]:
-                if texts_ids[i: i + length] == word_ids:
-                    return i, i + length
+    def find_word_in_texts(input_ids, entity_ids):
+        length = len(entity_ids)
+        for i, W in enumerate(input_ids):
+            if i+length <= len(input_ids) and input_ids[i: i + length] == entity_ids:
+                return i, i + length
         return None, None
+    
 
     for (ex_index, example) in enumerate(examples):
+        # 用bert分词，转换为token
+        # text = example.text
         if ex_index % 10_000 == 0:
             logger.info("Writing example %d of %d", ex_index, len(examples))
-        #
-        # if ex_index > 1000:
-        #     break
 
-        # seq的输入
-        inputs_seq = tokenizer(
-            example.words,
-            add_special_tokens=True,
-            # return_overflowing_tokens=True,
-        )
-
-        # ner的输入
         text = example.words
-        label_ids_one_text = []
-        features_one_text = []
+        inputs = tokenizer(
+            text,
+            add_special_tokens=True,
+            max_length=max_seq_length-2,
+            truncation="longest_first"
+        )
+        
+        
+        triples = []
+        
+
         for triple in example.triples:
-            subject = triple[0]
-            relation = triple[1]
-            object_ = triple[2]
+            h, r, t = triple
+            t_ids = tokenizer(" "+h, add_special_tokens=False)
+            h_s, h_e = find_word_in_texts(inputs['input_ids'], t_ids)
+            t_ids = tokenizer(" "+t, add_special_tokens=False)
+            t_s, t_e = find_word_in_texts(inputs['input_ids'], t_ids)
+            r = rel2id[r]
+            triples.append([h_s,h_e,t_s,t_e,r])
+        
 
-            inputs = tokenizer(
-                text,
-                add_special_tokens=True,
-                # return_overflowing_tokens=True,
+        features.append(
+            InputFeatures(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
+                token_type_ids=inputs["token_type_ids"],
+                triples=triples
             )
-
-            inputs['token_type_ids'] = tokenizer.create_token_type_ids_from_sequences(inputs['input_ids'][1:-1],
-                                                                                       [label_map_seq[relation]])
-            # label_map_seq[relation] 加入关系信息
-            inputs['input_ids'] = inputs['input_ids'] + [ label_map_seq[relation], tokenizer.sep_token_id]
-            inputs['attention_mask'] = inputs['attention_mask'] + [1, 1]
-
-            # 添加split_text文本的标签
-            # B-SUB I-SUB / B-OBJ I-OBJ
-            split_text_ids = inputs['input_ids']
-            # ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation"]
-            # 默认所有位置都为'O'
-            lable_ner = ['O' for i in range(len(split_text_ids))]
-
-            # 标注subject
-            subject_ids = tokenizer.encode(subject, add_special_tokens=False)
-            [start_idx, end_idx] = find_word_in_texts(subject_ids, split_text_ids)
-            if start_idx is None:
-                # logger.info('语料有问题(subject)！%d', ex_index)
-                counter = counter + 1
-                continue
-            lable_ner[start_idx: end_idx] = ['I-SUB' for i in range(len(subject_ids))]
-            lable_ner[start_idx] = 'B-SUB'
-
-            # 标注object
-            object_ids = tokenizer.encode(object_, add_special_tokens=False)
-            [start_idx, end_idx] = find_word_in_texts(object_ids, split_text_ids)
-            if start_idx is None:
-                # logger.info('语料有问题(object)！%d', ex_index)
-                counter = counter + 1
-                continue
-            lable_ner[start_idx: end_idx] = ['I-OBJ' for i in range(len(object_ids))]
-            lable_ner[start_idx] = 'B-OBJ'
-
-            # 标注最后三个字符串，SEP、Relation、SEP
-            lable_ner[-1] = 'O'
-            lable_ner[-2] = 'Relation'
-            lable_ner[-3] = 'O'
-
-            # NER标签转换
-            label_id_ner = [label_map_ner[i] for i in lable_ner]
-
-            label_ids_one_text.append(OutputExample(h=subject_ids, r=label_map_seq[relation], t=object_ids))
-            features_one_text.append(
-                InputFeatures_Interactive(
-                    input_ids_seq=inputs_seq["input_ids"],
-                    attention_mask_seq=inputs_seq["attention_mask"],
-                    token_type_ids_seq=inputs_seq["token_type_ids"],
-                    # label_ids_seq=label_id_seq,
-
-                    input_ids_ner=inputs["input_ids"],
-                    attention_mask_ner=inputs["attention_mask"],
-                    token_type_ids_ner=inputs["token_type_ids"],
-                    label_ids_ner=label_id_ner,
-                    # label_ids=label_ids
-                )
-            )
-
-        if len(features_one_text) != 0:
-            for f in features_one_text:
-                f.label_ids = label_ids_one_text
-            features.extend(features_one_text)
-        # else:
-        #     print('23')
-
+        )
+    logger.info(examples[0])
+    logger.info(features[0])
 
     return features
-
 
 
 

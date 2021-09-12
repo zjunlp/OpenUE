@@ -1,11 +1,10 @@
-
 [**中文说明**](https://github.com/zjunlp/openue/blob/master/README_CN.md) | [**English**](https://github.com/zjunlp/openue/)
 <p align="center">
     <a href="https://github.com/zjunlp/openue"> <img src="https://raw.githubusercontent.com/zjunlp/openue/master/docs/images/logo.png" width="400"/></a>
 </p>
 
 <p align="center">
-<strong> OpenUE 是一个提供了大量通用抽取功能的工具包。
+<strong> OpenUE is a toolkit that provides a off-the-shelf framework to implement lots of NLP extraction tasks. 
     </strong>
 </p>
     <p align="center">
@@ -35,9 +34,17 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
   - 快速部署NLP模型
   - [容器部署](https://hub.docker.com/r/)
     - 敏捷部署支持GPU的容器
+
 ## 环境
+
   - python3.6
   - [requirements.txt](https://github.com/zju/openue/blob/master/requirements.txt) 
+
+
+## 框架图
+
+![框架](./imgs/overview.png)
+
 
 ## 快速开始
 
@@ -53,22 +60,35 @@ conda install  --file requirements.txt
 
 #### 使用方式
 
-用户可通过以下几个简单的步骤实现基于OpenUE的抽取模型训练和部署
+数据格式为`json`文件，具体例子如下。
 
-##### Entity and Relation Extraction Example
-
-
+```json
+{
+	"text": "查尔斯·阿兰基斯（Charles Aránguiz），1989年4月17日出生于智利圣地亚哥，智利职业足球运动员，司职中场，效力于德国足球甲级联赛勒沃库森足球俱乐部",
+	"spo_list": [{
+		"predicate": "出生地",
+		"object_type": "地点",
+		"subject_type": "人物",
+		"object": "圣地亚哥",
+		"subject": "查尔斯·阿兰基斯"
+	}, {
+		"predicate": "出生日期",
+		"object_type": "Date",
+		"subject_type": "人物",
+		"object": "1989年4月17日",
+		"subject": "查尔斯·阿兰基斯"
+	}]
+}
 ```
-## 工具
 
-```python
->>> import openuee
->>> model = openue.get_model('ske_bert_entity_relation')
->>> res = model.infer('《上海滩》是刘德华的音乐作品，黄沾作曲，收录在《【歌单】酷我热门单曲合辑》专辑中')
->>> print(res)
-"spo_list": [{"object_type": "人物", "predicate": "作曲", "object": "黄沾", "subject_type": "歌曲", "subject": "上海滩"}, {"object_type": "音乐专辑", "predicate": "所属专辑", "object": "【歌单】酷我热门单曲合辑", "subject_type": "歌曲", "subject": "上海滩"}, {"object_type": "人物", "predicate": "歌手", "object": "刘德华", "subject_type": "歌曲", "subject": "上海滩"}]
+将数据存放在`./dataset/`目录下之后进行训练。运行以下脚本，将自动下载数据集和预训练模型并开始训练，过程中请保持网络畅通以免模型和数据下载失败。
+
+```shell
+./scripts/run_ner.sh
+./scripts/run_seq.sh
 ```
-请注意，第一次下载检查点和数据可能要花费几分钟。 然后使用`infer`进行句子级实体和关系提取。
+
+
 
 
 ## 引用

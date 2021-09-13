@@ -63,6 +63,7 @@ def _setup_parser():
 def _save_model(litmodel, tokenizer, path):
     litmodel.model.save_pretrained(path)
     tokenizer.save_pretrained(path)
+    litmodel.config.save_pretrained(path)
 
 
 def main():
@@ -86,7 +87,7 @@ def main():
         logger.log_hyperparams(vars(args))
     early_callback = pl.callbacks.EarlyStopping(monitor="Eval/f1", mode="max", patience=5)
     model_checkpoint = pl.callbacks.ModelCheckpoint(monitor="Eval/f1", mode="max",
-        filename='{epoch}-{Eval/f1:.2f}',
+        filename=args.task_name+"/" +'{epoch}-{Eval/f1:.2f}',
         dirpath="output",
         save_weights_only=True
     )
@@ -125,7 +126,8 @@ def main():
 
     trainer.test(lit_model, datamodule=data)
     
-    _save_model(lit_model, data.tokenizer, path.rsplit("/", 1)[0])
+    if hasattr(lit_model.model, "save_pretrained"):
+        _save_model(lit_model, data.tokenizer, path.rsplit("/", 1)[0])
     
 
 

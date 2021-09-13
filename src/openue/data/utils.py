@@ -353,7 +353,7 @@ def convert_examples_to_seq_features(
 
     for (ex_index, example) in enumerate(examples):
         inputs = tokenizer(
-            example.words,
+            ' '.join([_ for _ in example.words]).lower(),
             add_special_tokens=True,
             # return_overflowing_tokens=True,
             truncation="longest_first",
@@ -361,11 +361,6 @@ def convert_examples_to_seq_features(
         )
         label_ids_seq = []
         for triple in example.triples:
-            # input_ids: List[int]
-            # attention_mask: List[int]
-            # token_type_ids: Optional[List[int]] = None
-            # label_ids_seq: Optional[List[int]] = None
-            # label_ids_ner: Optional[List[int]] = None
             label_ids_seq.append(label2id[triple[1]])
 
         features.append(InputFeatures(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'],
@@ -423,7 +418,7 @@ def convert_examples_to_ner_features(
             # 转换为id，加上cls以及seq等
             # {"input_ids":[], "token_type_ids":[], "attention_mask":[]}
             inputs = tokenizer(
-                text,
+                ' '.join([_ for _ in text]).lower(),
                 add_special_tokens=True,
                 max_length=max_seq_length-2,
                 truncation="longest_first"
@@ -512,8 +507,6 @@ def convert_examples_to_interactive_features(
         for i, W in enumerate(input_ids):
             if i+length <= len(input_ids) and input_ids[i: i + length] == entity_ids:
                 return i, i + length
-        import IPython;
-        assert False,  IPython.embed(); exit(1)
         return None, None
     
 
@@ -525,25 +518,32 @@ def convert_examples_to_interactive_features(
 
         text = example.words
         inputs = tokenizer(
-            text,
+            " ".join([t for t in text]).lower(),
             add_special_tokens=True,
             max_length=max_seq_length-2,
             truncation="longest_first"
         )
-        
+        #! 模型问题，不是我的问题
+        if 100 in inputs['input_ids']:
+            continue
+        bad_flag = False
         
         triples = []
         
         for triple in example.triples:
             h, r, t = triple
-            import IPython; IPython.embed(); exit(1)
-            t_ids = tokenizer(h, add_special_tokens=False)['input_ids']
-            h_s, h_e = find_word_in_texts(inputs['input_ids'], t_ids)
-            t_ids = tokenizer(t, add_special_tokens=False)['input_ids']
+            h = h.lower()
+            t = t.lower()
+            h_ids = tokenizer(' '.join([_ for _ in h]).lower(), add_special_tokens=False)['input_ids']
+            h_s, h_e = find_word_in_texts(inputs['input_ids'], h_ids)
+            t_ids = tokenizer(' '.join([_ for _ in t]).lower(), add_special_tokens=False)['input_ids']
             t_s, t_e = find_word_in_texts(inputs['input_ids'], t_ids)
             r = rel2id[r]
             triples.append([h_s,h_e,t_s,t_e,r])
-        
+            if None in triples:
+                bad_flag = True
+
+        if bad_flag: continue
 
         features.append(
             InputFeatures_Interactive(
@@ -660,15 +660,15 @@ def openue_data_collator_interactive(features):
 
     features_new = []
     for f in features:
-        length = len(f.input_ids_seq)
+        length = len(f.input_ids)
         distance = max_length_seq - length
         add_zero = [0 for i in range(distance)]
 
         features_ = {}
 
-        features_['input_ids'] = f.input_ids_seq + add_zero  # 补0
-        features_['attention_mask'] = f.attention_mask_seq + add_zero  # 补0
-        features_['token_type_ids'] = f.token_type_ids_seq + add_zero  # 补0
+        features_['input_ids'] = f.input_ids + add_zero  # 补0
+        features_['attention_mask'] = f.attention_mask + add_zero  # 补0
+        features_['token_type_ids'] = f.token_type_ids + add_zero  # 补0
 
         features_['triples'] = f.triples
 
@@ -688,5 +688,7 @@ def openue_data_collator_interactive(features):
                 batch[k] = torch.stack([f[k] for f in features_new])
             else:
                 batch[k] = torch.tensor([f[k] for f in features_new], dtype=torch.long)
+        else:
+            batch[k] = [f[k] for f in features_new]
 
     return batch

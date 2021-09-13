@@ -42,6 +42,7 @@ class RELitModel(BaseLitModel):
         config.num_labels = self.data_config['num_labels']
         self.model = BertForNER.from_pretrained(self.args.model_name_or_path, config=config)
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
+        self.config = config
 
     def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         loss, logits = self.model(**batch)
@@ -113,6 +114,7 @@ class SEQLitModel(BaseLitModel):
         config.num_labels = self.data_config['num_labels']
         self.model = BertForRelationClassification.from_pretrained(self.args.model_name_or_path, config=config)
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
+        self.config = config
 
     def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         loss, _, _, _ = self.model(**batch)
@@ -154,6 +156,7 @@ class INFERLitModel(BaseLitModel):
     def __init__(self, args, data_config):
         super().__init__(args, data_config)
         self._init_model()
+        
 
 
     def forward(self, x):
@@ -166,18 +169,30 @@ class INFERLitModel(BaseLitModel):
         
     @staticmethod
     def _convert(triple, input_ids):
-        return OutputExample(h=input_ids[triple[0]:triple[1]], r=triple[-1], t=input_ids[triple[2]:triple[3]])
+        return [input_ids[triple[0]:triple[1]].detach().cpu().tolist(), triple[-1], input_ids[triple[2]:triple[3]].detach().cpu().tolist()]
         
+        
+    @staticmethod        
+    def _cal(a, b):
+        cnt = 0
+        for aa in a:
+            if aa in b:
+                cnt += 1
+        
+        return cnt
+
     def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         triples = batch.pop("triples")
-        pre_triples, _ = self.model(**batch)
+        pre_triples = self.model(batch)
         bsz = batch['input_ids'].shape[0]
         pre = cor = true = 0
         for i in range(bsz):
-            pre_triple, true_triple = pre_triples, [self._convert(_) for _ in triples[i]]
+            pre_triple, true_triple = pre_triples[i], [self._convert(_, batch['input_ids'][i]) for _ in triples[i]]
+            if pre_triple:
+                print(pre_triple)
             pre += len(pre_triple)
             true += len(true_triple)
-            cor += len(set(pre_triple) & set(true_triple))
+            cor += self._cal(pre_triple, true_triple)
 
 
 

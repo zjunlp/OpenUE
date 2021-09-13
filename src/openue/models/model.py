@@ -150,6 +150,7 @@ class Inference(torch.nn.Module):
         self._init_labels()    
         self._init_models()
         
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         self.mode = "event" if "event" in args.task_name else "triple"
         
@@ -275,7 +276,7 @@ class Inference(torch.nn.Module):
             input_ids_ner = torch.cat((tmp4, cat_zero), 1)
 
             # 利用attention中1的求和的到rel_pos的位置
-            attention_mask_ner = torch.unsqueeze(inputs['attention_mask_seq'], 1)
+            attention_mask_ner = torch.unsqueeze(inputs['attention_mask'], 1)
             # [batch_size, 50, max_length], 复制50份
             attention_mask_ner = attention_mask_ner.expand(-1, len(self.label_map_seq.keys()), -1)
             # [batch_size * 50, max_length]
@@ -313,10 +314,11 @@ class Inference(torch.nn.Module):
             tmp5[rel_pos_mask_plus.bool()] = 1
             attention_mask_ner_tmp = tmp5
 
-            inputs_ner = {'input_ids': input_ids_ner,
-                        'token_type_ids': token_type_ids_ner,
-                        'attention_mask': attention_mask_ner_tmp,
-                        }
+            inputs_ner = {
+                'input_ids': input_ids_ner,
+                'token_type_ids': token_type_ids_ner,
+                'attention_mask': attention_mask_ner_tmp,
+            }
 
             try:
                 outputs_ner = self.model_ner(**inputs_ner)[0]
@@ -348,7 +350,7 @@ class Inference(torch.nn.Module):
 
             # 把结果剥离出来
             index = 0
-            triple_output = [[] for _ in range(batch_size)]
+            triple_output = []
 
             # for each relation type or event type
             # by default, extract the first head and tail to construct the triples
@@ -371,16 +373,17 @@ class Inference(torch.nn.Module):
                         # t = ''.join(tokenizer.convert_ids_to_tokens(t))
 
                     # greedy select the head and tail
-                    for hh in h:
-                        for tt in t:
-                            triple_output.append(OutputExample(h=hh, r=r, t=tt))
+                    if h and t:
+                        for hh in h:
+                            for tt in t:
+                                triple_output.append([hh, r, tt])
 
                     index = index + 1
             elif self.mode == "event":
                 for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
                     triple_output.append(dict(event_type=predict_relation_list[index], argument=self.process(ids, BIOS)))
 
-            return triple_output, inputs['label_ids']
+            return [triple_output]
         
     @staticmethod 
     def normal_process(text, result):

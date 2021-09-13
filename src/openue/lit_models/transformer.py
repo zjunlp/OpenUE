@@ -6,6 +6,7 @@ import torch.nn.functional as F
 # Hide lines below until Lab 5
 import wandb
 import numpy as np
+from openue.data.utils import OutputExample
 
 from openue.models.model import Inference
 # Hide lines above until Lab 5
@@ -152,8 +153,8 @@ class SEQLitModel(BaseLitModel):
 class INFERLitModel(BaseLitModel):
     def __init__(self, args, data_config):
         super().__init__(args, data_config)
-
         self._init_model()
+
 
     def forward(self, x):
         return self.model(x)
@@ -162,15 +163,32 @@ class INFERLitModel(BaseLitModel):
         #TODO put the parameters from the data_config to the config, maybe use the __dict__?
         self.model = Inference(self.args)
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
-
+        
+    @staticmethod
+    def _convert(triple, input_ids):
+        return OutputExample(h=input_ids[triple[0]:triple[1]], r=triple[-1], t=input_ids[triple[2]:triple[3]])
+        
     def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
-        loss, _, logits, _ = self.model(**batch)
-        return {"test_logits": logits.detach().cpu().numpy(), "test_labels": batch['label_ids_seq'].detach().cpu().numpy()}
+        triples = batch.pop("triples")
+        pre_triples, _ = self.model(**batch)
+        bsz = batch['input_ids'].shape[0]
+        pre = cor = true = 0
+        for i in range(bsz):
+            pre_triple, true_triple = pre_triples, [self._convert(_) for _ in triples[i]]
+            pre += len(pre_triple)
+            true += len(true_triple)
+            cor += len(set(pre_triple) & set(true_triple))
+
+
+
+        return dict(pre=pre, true=true, cor=cor)
 
     def test_epoch_end(self, outputs) -> None:
-        logits = np.concatenate([o["test_logits"] for o in outputs], axis=0)
-        labels = np.concatenate([o["test_labels"] for o in outputs], axis=0)
+        pre = np.sum([o["pre"] for o in outputs], axis=0)
+        cor = np.sum([o["cor"] for o in outputs], axis=0)
+        true = np.sum([o["true"] for o in outputs], axis=0)
 
-        result = self.eval_fn(logits, labels)
-        f1 = result['f1']
+        p = cor / pre if pre else 0
+        r = cor / true if true else 0
+        f1 = 2 * p * r / (p+r) if p+r else 0
         self.log("Test/f1", f1)

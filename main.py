@@ -60,6 +60,10 @@ def _setup_parser():
     parser.add_argument("--help", "-h", action="help")
     return parser
 
+def _save_model(litmodel, tokenizer, path):
+    litmodel.model.save_pretrained(path)
+    tokenizer.save_pretrained(path)
+
 
 def main():
     parser = _setup_parser()
@@ -92,10 +96,11 @@ def main():
 
     # args.weights_summary = "full"  # Print full summary of the model
     trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks, logger=logger, default_root_dir="training/logs")
+    
+    
+    test_only = "interactive" in args.task_name 
 
-    trainer.tune(lit_model, datamodule=data)  # If passing --auto_lr_find, this will set learning rate
-
-    trainer.fit(lit_model, datamodule=data)
+    if not test_only: trainer.fit(lit_model, datamodule=data)
 
 
 
@@ -104,21 +109,24 @@ def main():
 
     path = model_checkpoint.best_model_path
 
-    if not os.path.exists("config"):
-        os.mkdir("config")
-    config_file_name = time.strftime("%H:%M:%S", time.localtime()) + ".yaml"
-    day_name = time.strftime("%Y-%m-%d")
-    if not os.path.exists(os.path.join("config", day_name)):
-        os.mkdir(os.path.join("config", time.strftime("%Y-%m-%d")))
-    config = vars(args)
-    config["path"] = path
-    with open(os.path.join(os.path.join("config", day_name), config_file_name), "w") as file:
-        file.write(yaml.dump(config))
+    # if not os.path.exists("config"):
+    #     os.mkdir("config")
+    # config_file_name = time.strftime("%H:%M:%S", time.localtime()) + ".yaml"
+    # day_name = time.strftime("%Y-%m-%d")
+    # if not os.path.exists(os.path.join("config", day_name)):
+    #     os.mkdir(os.path.join("config", time.strftime("%Y-%m-%d")))
+    # config = vars(args)
+    # config["path"] = path
+    # with open(os.path.join(os.path.join("config", day_name), config_file_name), "w") as file:
+    #     file.write(yaml.dump(config))
 
-    lit_model.load_state_dict(torch.load(path)["state_dict"])
+    # lit_model.load_state_dict(torch.load(path)["state_dict"])
 
 
     trainer.test(lit_model, datamodule=data)
+    
+    _save_model(lit_model, data.tokenizer, path.rsplit("/", 1)[0])
+    
 
 
 if __name__ == "__main__":

@@ -1,2 +1,2 @@
-from .transformer import RELitModel, SEQLitModel
+from .transformer import *
 from .base import BaseLitModel

@@ -1,1 +1,1 @@
-from .model import BertForRelationClassification, BertForNER
+from .model import *

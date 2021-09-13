@@ -5,6 +5,7 @@ import logging
 import os
 from dataclasses import dataclass
 from enum import Enum
+from shutil import Error
 from typing import List, Optional, Union, Dict
 
 import numpy as np
@@ -12,6 +13,7 @@ import numpy as np
 import jsonlines
 
 from transformers import PreTrainedTokenizer, is_torch_available, BatchEncoding
+from transformers.utils.dummy_pt_objects import DebertaForQuestionAnswering
 
 logger = logging.getLogger(__name__)
 
@@ -213,6 +215,9 @@ if is_torch_available():
             task='seq'
 
         ):
+        
+            with open(f"{data_dir}/rel2id.json", "r") as file:
+                rel2id = json.load(file)
             # Load data features from cache or dataset file
             cached_examples_file = os.path.join(
                 data_dir, "cached_{}_{}.examples".format(mode.value, tokenizer.__class__.__name__),
@@ -288,15 +293,7 @@ if is_torch_available():
                         labels_ner=labels_ner,
                         max_seq_length=max_seq_length,
                         tokenizer=tokenizer,
-                        cls_token_at_end=bool(model_type in ["xlnet"]),
-                        cls_token=tokenizer.cls_token,
-                        cls_token_segment_id=2 if model_type in ["xlnet"] else 0,
-                        sep_token=tokenizer.sep_token,
-                        sep_token_extra=False,
-                        pad_on_left=bool(tokenizer.padding_side == "left"),
-                        pad_token=tokenizer.pad_token_id,
-                        pad_token_segment_id=tokenizer.pad_token_type_id,
-                        pad_token_label_id=self.pad_token_label_id,
+                        rel2id=rel2id
                     )
 
                 logger.info(f"Saving features into cached file {cached_features_file}")
@@ -515,6 +512,8 @@ def convert_examples_to_interactive_features(
         for i, W in enumerate(input_ids):
             if i+length <= len(input_ids) and input_ids[i: i + length] == entity_ids:
                 return i, i + length
+        import IPython;
+        assert False,  IPython.embed(); exit(1)
         return None, None
     
 
@@ -535,19 +534,19 @@ def convert_examples_to_interactive_features(
         
         triples = []
         
-
         for triple in example.triples:
             h, r, t = triple
-            t_ids = tokenizer(" "+h, add_special_tokens=False)
+            import IPython; IPython.embed(); exit(1)
+            t_ids = tokenizer(h, add_special_tokens=False)['input_ids']
             h_s, h_e = find_word_in_texts(inputs['input_ids'], t_ids)
-            t_ids = tokenizer(" "+t, add_special_tokens=False)
+            t_ids = tokenizer(t, add_special_tokens=False)['input_ids']
             t_s, t_e = find_word_in_texts(inputs['input_ids'], t_ids)
             r = rel2id[r]
             triples.append([h_s,h_e,t_s,t_e,r])
         
 
         features.append(
-            InputFeatures(
+            InputFeatures_Interactive(
                 input_ids=inputs["input_ids"],
                 attention_mask=inputs["attention_mask"],
                 token_type_ids=inputs["token_type_ids"],
@@ -656,11 +655,8 @@ def openue_data_collator_ner(features):
     return batch
 
 def openue_data_collator_interactive(features):
-    max_length_seq = [len(f.input_ids_seq) for f in features]
+    max_length_seq = [len(f.input_ids) for f in features]
     max_length_seq = max(max_length_seq)
-
-    max_length_ner = [len(f.input_ids_ner) for f in features]
-    max_length_ner = max(max_length_ner)
 
     features_new = []
     for f in features:
@@ -670,19 +666,11 @@ def openue_data_collator_interactive(features):
 
         features_ = {}
 
-        features_['input_ids_seq'] = f.input_ids_seq + add_zero  # 补0
-        features_['attention_mask_seq'] = f.attention_mask_seq + add_zero  # 补0
-        features_['token_type_ids_seq'] = f.token_type_ids_seq + add_zero  # 补0
+        features_['input_ids'] = f.input_ids_seq + add_zero  # 补0
+        features_['attention_mask'] = f.attention_mask_seq + add_zero  # 补0
+        features_['token_type_ids'] = f.token_type_ids_seq + add_zero  # 补0
 
-        length = len(f.input_ids_ner)
-        distance = max_length_ner - length
-        add_zero = [0 for i in range(distance)]
-        add_special = [0 for i in range(distance)]
-        features_['input_ids_ner'] = f.input_ids_ner + add_zero  # 补0
-        features_['attention_mask_ner'] = f.attention_mask_ner + add_zero  # 补0
-        features_['token_type_ids_ner'] = f.token_type_ids_ner + add_zero  # 补0
-        features_['label_ids_ner'] = f.label_ids_ner + add_special  # 补0, 为了补齐的最长长度, loss计算中有mask存在会被忽略
-        features_['label_ids'] = f.label_ids
+        features_['triples'] = f.triples
 
         features_new.append(features_)
 
@@ -692,12 +680,10 @@ def openue_data_collator_interactive(features):
 
     first = features_new[0]
     batch = {}
-    # batch["label_ids_seq"] = torch.tensor([f["label_ids_seq"] for f in features], dtype=torch.float)
-    batch["label_ids_ner"] = torch.tensor([f["label_ids_ner"] for f in features_new], dtype=torch.float)
-    batch["label_ids"] = [f["label_ids"] for f in features_new]
 
+    # 这就是完美batch
     for k, v in first.items():
-        if k not in ("label_ids", "label_ids_ner") and v is not None and not isinstance(v, str):
+        if k not in ("triples") and v is not None and not isinstance(v, str):
             if isinstance(v, torch.Tensor):
                 batch[k] = torch.stack([f[k] for f in features_new])
             else:

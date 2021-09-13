@@ -1,4 +1,4 @@
-python main.py --gpus "0," --max_epochs 30  \
+CUDA_VISIBLE_DEVICES=1 python main.py --gpus "0," --max_epochs 1  \
     --data_class REDataset \
     --litmodel_class RELitModel \
     --model_class BertForNER \

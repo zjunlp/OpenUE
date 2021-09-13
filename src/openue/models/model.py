@@ -144,6 +144,7 @@ class Inference(torch.nn.Module):
         return the triples
     """
     def __init__(self, args):
+        super().__init__()
         self.args = args
         # init the labels
         self._init_labels()    
@@ -162,12 +163,12 @@ class Inference(torch.nn.Module):
     def _init_labels(self):
         self.labels_ner = get_labels_ner()
         self.label_map_ner: Dict[int, str] = {i: label for i, label in enumerate(self.labels_ner)}
-        num_labels_ner = len(self.labels_ner)
+        self.num_labels_ner = len(self.labels_ner)
 
         # 读取seq的label
         self.labels_seq = get_labels_seq()
         self.label_map_seq: Dict[int, str] = {i: label for i, label in enumerate(self.labels_seq)}
-        num_labels_seq = len(self.labels_seq)
+        self.num_labels_seq = len(self.labels_seq)
     
     
     def _init_models(self):
@@ -246,7 +247,7 @@ class Inference(torch.nn.Module):
 
             index_ = torch.arange(0, num_relations).to(self.device)
             index_ = index_.expand(batch_size, num_relations)
-            # 需要拼接的部分1：REL
+            # 需要拼接的部分1：REL， 选取拼接的部分
             relation_output_sigmoid_number = torch.masked_select(index_, relation_output_sigmoid_.bool())
             # 需要拼接的部分2：SEP
             cat_sep = torch.full((relation_output_sigmoid_number.shape[0], 1), 102).long().to(self.device)
@@ -315,7 +316,6 @@ class Inference(torch.nn.Module):
             inputs_ner = {'input_ids': input_ids_ner,
                         'token_type_ids': token_type_ids_ner,
                         'attention_mask': attention_mask_ner_tmp,
-                        # 'label_ids_ner': inputs['label_ids_ner'].long()
                         }
 
             try:
@@ -340,15 +340,18 @@ class Inference(torch.nn.Module):
                 processed_results_list.append(tmp1)
                 processed_input_ids_list.append(tmp2)
 
+            # 将ner的句子转化为BIOES的标签之后把实体拿出来
             processed_results_list_BIO = []
             for result in processed_results_list:
                 processed_results_list_BIO.append([self.label_map_ner[token] for token in result])
 
+
             # 把结果剥离出来
             index = 0
-            triple_output = []
+            triple_output = [[] for _ in range(batch_size)]
 
             # for each relation type or event type
+            # by default, extract the first head and tail to construct the triples
             if self.mode == "triple":
                 for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
                     labels = self.process(ids, BIOS)
@@ -358,16 +361,19 @@ class Inference(torch.nn.Module):
                     if len(labels['subject']) == 0:
                         h = None
                     else:
-                        h = labels['subject'][0]
+                        h = labels['subject']
                         # h = ''.join(tokenizer.convert_ids_to_tokens(h))
 
                     if len(labels['object']) == 0:
                         t = None
                     else:
-                        t = labels['object'][0]
+                        t = labels['object']
                         # t = ''.join(tokenizer.convert_ids_to_tokens(t))
 
-                    triple_output.append(OutputExample(h=h, r=r, t=t))
+                    # greedy select the head and tail
+                    for hh in h:
+                        for tt in t:
+                            triple_output.append(OutputExample(h=hh, r=r, t=tt))
 
                     index = index + 1
             elif self.mode == "event":

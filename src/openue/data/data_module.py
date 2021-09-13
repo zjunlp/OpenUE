@@ -48,7 +48,7 @@ class REDataset(BaseDataModule):
     @staticmethod
     def add_to_argparse(parser):
         BaseDataModule.add_to_argparse(parser)
-        parser.add_argument("--task_name", type=str, default="ner",choices=["ner", "seq"], help="[normal, reloss, ptune]",)
+        parser.add_argument("--task_name", type=str, default="ner",choices=["ner", "seq", "interactive"], help="[normal, reloss, ptune]",)
         parser.add_argument("--model_name_or_path", type=str, default="bert-base-uncased", help="Number of examples to operate on per forward step.")
         parser.add_argument("--max_seq_length", type=int, default=128, help="Number of examples to operate on per forward step.")
         return parser

@@ -67,8 +67,8 @@ class RELitModel(BaseLitModel):
         self.log("Eval/best_f1", self.best_f1, prog_bar=True, on_epoch=True)
 
     def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
-        input_ids, attention_mask, token_type_ids , labels = batch
-        logits = self.model(input_ids, attention_mask, token_type_ids)
+        loss, logits = self.model(**batch)
+        self.log("Eval/loss", loss)
         return {"test_logits": logits.detach().cpu().numpy(), "test_labels": labels.detach().cpu().numpy()}
 
     def test_epoch_end(self, outputs) -> None:

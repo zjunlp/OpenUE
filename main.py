@@ -126,6 +126,7 @@ def main():
 
     trainer.test(lit_model, datamodule=data)
     
+    import IPython; IPython.embed(); exit(1)
     if hasattr(lit_model.model, "save_pretrained"):
         _save_model(lit_model, data.tokenizer, path.rsplit("/", 1)[0])
     

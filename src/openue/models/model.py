@@ -172,9 +172,7 @@ class Inference(torch.nn.Module):
         model_name_or_path = self.args.seq_model_name_or_path
         config = AutoConfig.from_pretrained(
             model_name_or_path,
-            # './vocab.txt',
             num_labels=self.num_labels_seq,
-            # id2label=label_map_seq,
             label2id={label: i for i, label in enumerate(self.labels_ner)},
         )
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -183,7 +181,6 @@ class Inference(torch.nn.Module):
         )
         self.model_seq = BertForRelationClassification.from_pretrained(
             model_name_or_path,
-            # from_tf=bool(".ckpt" in model_args.model_name_or_path),
             config=config,
         )
 
@@ -195,11 +192,6 @@ class Inference(torch.nn.Module):
             id2label=self.label_map_ner,
             label2id={label: i for i, label in enumerate(self.labels_ner)},
         )
-        # tokenizer = BertTokenizer.from_pretrained(
-        #     model_name_or_path,
-        #     cache_dir=model_args.cache_dir,
-        #     use_fast=model_args.use_fast,
-        # )
         self.model_ner = BertForNER.from_pretrained(
             model_name_or_path,
             config=config,
@@ -208,6 +200,9 @@ class Inference(torch.nn.Module):
     def forward(self, inputs):
         """
         两种方案，一种直接所有relation搞起来，一种使用动态batch size, 针对出现的relation进行forward
+        首先通过model_seq获得输入语句的类别标签，batch中每一个样本中含有的关系，
+        之后选择大于阈值(0.5)的关系，将其输入取出来得到[batch_size*num_relation, seq_length]的输入向量，以及每一个样本对应的关系数量，
+        将其增加了关系类别embedding之后，输入到model_ner中，得到input_ids中每一个token的类别，之后常规的实体识别。
         
         """
         for k, v in inputs.items():
@@ -226,51 +221,49 @@ class Inference(torch.nn.Module):
             num_relations = len(self.label_map_seq.keys())
             max_length = inputs_seq['input_ids'].shape[1]
 
-            # [batch_size, 50]
-            # relation_output_sigmoid = outputs_seq[1]
+            # [batch_size, num_relation]
             relation_output_sigmoid = outputs_seq[0]
 
             # 多关系预测
-            relation_output_sigmoid_ = relation_output_sigmoid > 0.5
+            mask_relation_output_sigmoid = relation_output_sigmoid > 0.5
             # # 这个0.5是超参数，超参数
-            if torch.sum(relation_output_sigmoid_).tolist() == 0:
-                idx = torch.max(relation_output_sigmoid, dim=1)[1].tolist()[0]
-                relation_output_sigmoid_[0][idx] = 1
+            # 如果没有关系那就选一个最大概率的关系抽取。
+            for i in range(batch_size):
+                if torch.sum(mask_relation_output_sigmoid[i]) == 0:
+                    max_relation_idx = torch.max(relation_output_sigmoid[i], dim=0)[1].tolist()[0]
+                    mask_relation_output_sigmoid[max_relation_idx] = 1
 
-            # [batch_size, 50]
-            relation_output_sigmoid_ = relation_output_sigmoid_.long()
-            # [batch_size * 50, ]
-            relation_output_sigmoid_index = relation_output_sigmoid_.view(-1)
+            mask_relation_output_sigmoid = mask_relation_output_sigmoid.long()
+            # mask_output [batch_size*num_relation] 表示哪一个输入是需要的
+            mask_output = mask_relation_output_sigmoid.view(-1)
 
-            # relation 特殊表示
-            index_ = torch.arange(self.start_idx, self.start_idx+num_relations).to(self.device)
-            index_ = index_.expand(batch_size, num_relations)
-            # 需要拼接的部分1：REL， 选取拼接的部分
-            relation_output_sigmoid_number = torch.masked_select(index_, relation_output_sigmoid_.bool())
+            # relation 特殊表示，需要拼接 input_ids :[SEP relation]  attention_mask: [1 1] token_type_ids:[1 1]
+            # relation_index shape : [batch_size, num_relations]
+            relation_index = torch.arange(self.start_idx, self.start_idx+num_relations).to(self.device).expand(batch_size, num_relations)
+            # 需要拼接的部分1：REL， 选取拼接的部分 [batch_size * xxx 不定]
+            relation_ids = torch.masked_select(relation_index, mask_relation_output_sigmoid.bool())
             # 需要拼接的部分2：SEP
-            cat_sep = torch.full((relation_output_sigmoid_number.shape[0], 1), 102).long().to(self.device)
+            cat_sep = torch.full((relation_ids.shape[0], 1), 102).long().to(self.device)
             # 需要拼接的部分3：[1]
-            cat_one = torch.full((relation_output_sigmoid_number.shape[0], 1), 1).long().to(self.device)
+            cat_one = torch.full((relation_ids.shape[0], 1), 1).long().to(self.device)
             # 需要拼接的部4：[0]
-            cat_zero = torch.full((relation_output_sigmoid_number.shape[0], 1), 0).long().to(self.device)
+            cat_zero = torch.full((relation_ids.shape[0], 1), 0).long().to(self.device)
 
             # 需要原来的input_ids 扩展到relation num维度。
-            input_ids_ner = torch.unsqueeze(inputs['input_ids'], 1)
+            input_ids_ner = torch.unsqueeze(inputs['input_ids'], 1) # [batch_size, 1, seq_length]
             # [batch_size, 50, max_length], 复制50份
             input_ids_ner = input_ids_ner.expand(-1, len(self.label_map_seq.keys()), -1)
             # [batch_size * 50, max_length]
             input_ids_ner_reshape = input_ids_ner.reshape(batch_size * num_relations, max_length)
             # 选择预测正确的所有关系
-            tmp1 = relation_output_sigmoid_index.unsqueeze(dim=1)  # [200, 1]
-            mask = tmp1.expand(-1, max_length)  # [200, 79]
-            tmp2 = torch.masked_select(input_ids_ner_reshape, mask.bool())
+            mask = mask_output.unsqueeze(dim=1).expand(-1, max_length)  # [batch_size * num_relations, max_length]
+            # 选取了正确的input_ids
+            input_ids = torch.masked_select(input_ids_ner_reshape, mask.bool()).view(-1, max_length)
             # n(选出来的关系数字) * max_length
             # n >> batch_size, 因为一句话中有多个关系
-            tmp3 = tmp2.view(-1, max_length)
-            # 拼接 0
-            tmp4 = torch.cat((tmp3, cat_zero), 1)
-            # 拼接 0
-            input_ids_ner = torch.cat((tmp4, cat_zero), 1)
+            # 添加 sep relation_ids 需要增加的东西
+            input_ids = torch.cat((input_ids, cat_zero), 1)
+            input_ids_ner = torch.cat((input_ids, cat_zero), 1)
 
             # 利用attention中1的求和的到rel_pos的位置
             attention_mask_ner = torch.unsqueeze(inputs['attention_mask'], 1)
@@ -279,7 +272,7 @@ class Inference(torch.nn.Module):
             # [batch_size * 50, max_length]
             attention_mask_ner_reshape = attention_mask_ner.reshape(batch_size * num_relations, max_length)
             # 选择预测正确的所有关系
-            tmp1 = relation_output_sigmoid_index.unsqueeze(dim=1)  # [200, 1]
+            tmp1 = mask_output.unsqueeze(dim=1)  # [200, 1]
             mask = tmp1.expand(-1, max_length)  # [200, 79]
             tmp2 = torch.masked_select(attention_mask_ner_reshape, mask.bool())
             # n(选出来的关系数字) * max_length
@@ -293,7 +286,7 @@ class Inference(torch.nn.Module):
             rel_pos_mask_plus = one_hot.index_select(0, rel_pos+1)
 
             # 拼接input_ids的输入
-            input_ids_ner[rel_pos_mask.bool()] = relation_output_sigmoid_number
+            input_ids_ner[rel_pos_mask.bool()] = relation_ids
             input_ids_ner[rel_pos_mask_plus.bool()] = cat_sep.squeeze()
 
             # 拼接token_type_ids的输入
@@ -328,7 +321,7 @@ class Inference(torch.nn.Module):
 
             results_list = results_np.tolist()
             attention_position_list = attention_position_np.tolist()
-            predict_relation_list = relation_output_sigmoid_number.long().tolist()
+            predict_relation_list = relation_ids.long().tolist()
             input_ids_list = input_ids_ner.tolist()
 
             processed_results_list = []

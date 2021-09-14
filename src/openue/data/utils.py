@@ -386,7 +386,10 @@ def convert_examples_to_ner_features(
     sequence_a_segment_id=0,
     mask_padding_with_zero=True,
 ):
+    # 将relation ids转化为特殊字符对应的ids,避免了relation 表示和原来的词表进行冲突
+    start_idx = tokenizer("[relation1]", add_special_tokens=False)['input_ids'][0]
     label_map_seq = {label: i for i, label in enumerate(labels_seq)}
+    seq_label2ids = {label: i+start_idx for i, label in enumerate(labels_seq)}
     label_map_ner = {label: i for i, label in enumerate(labels_ner)}
 
     features = []
@@ -425,9 +428,9 @@ def convert_examples_to_ner_features(
             )
 
             inputs['token_type_ids'] = tokenizer.create_token_type_ids_from_sequences(inputs['input_ids'][1:-1],
-                                                                                       [label_map_seq[relation]])
-            # label_map_seq[relation] 加入关系信息
-            inputs['input_ids'] = inputs['input_ids'] + [label_map_seq[relation], tokenizer.sep_token_id]
+                                                                                       [seq_label2ids[relation]])
+            # label_map_seq[relation] 加入关系信息, 使用seq_label2ids
+            inputs['input_ids'] = inputs['input_ids'] + [seq_label2ids[relation], tokenizer.sep_token_id]
             inputs['attention_mask'] = inputs['attention_mask'] + [1, 1]
 
             # 添加split_text文本的标签
@@ -483,7 +486,7 @@ def convert_examples_to_ner_features(
                 )
             )
 
-    # print('语料有问题句子比例是', str(counter/len(examples)))
+    print('语料有问题句子比例是', str(counter/len(examples)))
     return features
 
 

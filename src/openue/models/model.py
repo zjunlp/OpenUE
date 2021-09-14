@@ -153,13 +153,13 @@ class Inference(torch.nn.Module):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         self.mode = "event" if "event" in args.task_name else "triple"
+        self.start_idx = self.tokenizer("[relation1]", add_special_tokens=False)['input_ids'][0]
         
         if self.mode == "event":
             self.process = self.event_process
         else:
             self.process = self.normal_process
         
-     
     
     def _init_labels(self):
         self.labels_ner = get_labels_ner()
@@ -170,6 +170,7 @@ class Inference(torch.nn.Module):
         self.labels_seq = get_labels_seq()
         self.label_map_seq: Dict[int, str] = {i: label for i, label in enumerate(self.labels_seq)}
         self.num_labels_seq = len(self.labels_seq)
+
     
     
     def _init_models(self):
@@ -246,7 +247,8 @@ class Inference(torch.nn.Module):
             # [batch_size * 50, ]
             relation_output_sigmoid_index = relation_output_sigmoid_.view(-1)
 
-            index_ = torch.arange(0, num_relations).to(self.device)
+            # relation 特殊表示
+            index_ = torch.arange(self.start_idx, self.start_idx+num_relations).to(self.device)
             index_ = index_.expand(batch_size, num_relations)
             # 需要拼接的部分1：REL， 选取拼接的部分
             relation_output_sigmoid_number = torch.masked_select(index_, relation_output_sigmoid_.bool())

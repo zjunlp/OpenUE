@@ -353,7 +353,7 @@ def convert_examples_to_seq_features(
 
     for (ex_index, example) in enumerate(examples):
         inputs = tokenizer(
-            ' '.join([_ for _ in example.words]).lower(),
+            preprocess(example.words),
             add_special_tokens=True,
             # return_overflowing_tokens=True,
             truncation="longest_first",
@@ -367,6 +367,11 @@ def convert_examples_to_seq_features(
                                           token_type_ids=inputs['token_type_ids'], label_ids_seq=label_ids_seq))
 
     return features
+
+
+
+def preprocess(text):
+    return " ".join([_ for _ in text]).lower()
 
 def convert_examples_to_ner_features(
     examples: List[InputExample],
@@ -408,9 +413,9 @@ def convert_examples_to_ner_features(
 
         text = example.words
         for triple in example.triples:
-            subject = triple[0]
+            subject = preprocess(triple[0])
             relation = triple[1]
-            object_ = triple[2]
+            object_ = preprocess(triple[2])
 
             # cls w1 w2 .. sep w3 w4 sep 000000000
             # token_type
@@ -418,7 +423,7 @@ def convert_examples_to_ner_features(
             # 转换为id，加上cls以及seq等
             # {"input_ids":[], "token_type_ids":[], "attention_mask":[]}
             inputs = tokenizer(
-                ' '.join([_ for _ in text]).lower(),
+                preprocess(text),
                 add_special_tokens=True,
                 max_length=max_seq_length-2,
                 truncation="longest_first"
@@ -518,7 +523,7 @@ def convert_examples_to_interactive_features(
 
         text = example.words
         inputs = tokenizer(
-            " ".join([t for t in text]).lower(),
+            preprocess(text),
             add_special_tokens=True,
             max_length=max_seq_length-2,
             truncation="longest_first"
@@ -532,11 +537,9 @@ def convert_examples_to_interactive_features(
         
         for triple in example.triples:
             h, r, t = triple
-            h = h.lower()
-            t = t.lower()
-            h_ids = tokenizer(' '.join([_ for _ in h]).lower(), add_special_tokens=False)['input_ids']
+            h_ids = tokenizer(preprocess(h), add_special_tokens=False)['input_ids']
             h_s, h_e = find_word_in_texts(inputs['input_ids'], h_ids)
-            t_ids = tokenizer(' '.join([_ for _ in t]).lower(), add_special_tokens=False)['input_ids']
+            t_ids = tokenizer(preprocess(t), add_special_tokens=False)['input_ids']
             t_s, t_e = find_word_in_texts(inputs['input_ids'], t_ids)
             r = rel2id[r]
             triples.append([h_s,h_e,t_s,t_e,r])

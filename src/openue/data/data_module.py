@@ -20,14 +20,15 @@ class REDataset(BaseDataModule):
         self.collate_fn = collator_set[args.task_name]
 
         # 默认加入特殊token来表示关系
-        relation_tokens = [f"[relation{i}]" for i in range(self.num_labels)]
-        num_added_tokens = self.tokenizer.add_special_tokens({'additional_special_tokens': relation_tokens})
-        logger.info(f"add total special tokens: {num_added_tokens} \n {relation_tokens}")
+        if self.args.task_name != "ner":
+            relation_tokens = [f"[relation{i}]" for i in range(self.num_labels)]
+            num_added_tokens = self.tokenizer.add_special_tokens({'additional_special_tokens': relation_tokens})
+            logger.info(f"add total special tokens: {num_added_tokens} \n {relation_tokens}")
 
     def setup(self, stage=None):
         self.data_train = get_dataset("train", self.args, self.tokenizer)
         self.data_val = get_dataset("dev", self.args, self.tokenizer)
-        self.data_test = get_dataset("dev", self.args, self.tokenizer)
+        self.data_test = get_dataset("test", self.args, self.tokenizer)
 
     def prepare_data(self):
         # download the dataset and move it to the dataset fold

@@ -68,8 +68,8 @@ class RELitModel(BaseLitModel):
 
     def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         loss, logits = self.model(**batch)
-        self.log("Eval/loss", loss)
-        return {"test_logits": logits.detach().cpu().numpy(), "test_labels": labels.detach().cpu().numpy()}
+
+        return {"test_logits": logits.detach().cpu().numpy(), "test_labels": batch['label_ids_ner'].detach().cpu().numpy()}
 
     def test_epoch_end(self, outputs) -> None:
         logits = np.concatenate([self.padding(o["test_logits"]) for o in outputs], axis=0)

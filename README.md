@@ -56,6 +56,7 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 conda create -n openue python=3.6
 conda activate openue
 conda install  --file requirements.txt 
+python setup.py install
 ```
 
 #### 使用方式

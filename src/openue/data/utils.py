@@ -413,6 +413,7 @@ def convert_examples_to_ner_features(
         # text = example.text
         if ex_index % 10_000 == 0:
             logger.info("Writing example %d of %d", ex_index, len(examples))
+        
 
         text = example.words
         for triple in example.triples:
@@ -446,7 +447,7 @@ def convert_examples_to_ner_features(
             lable_ner = ['O' for i in range(len(split_text_ids))]
 
             # 标注subject
-            subject_ids = tokenizer.encode(subject, add_special_tokens=False)
+            subject_ids = tokenizer.encode(preprocess(subject), add_special_tokens=False)
             [start_idx, end_idx] = find_word_in_texts(subject_ids, split_text_ids)
             if start_idx is None:
                 # logger.info('语料有问题(subject)！%d', ex_index)
@@ -456,7 +457,7 @@ def convert_examples_to_ner_features(
             lable_ner[start_idx] = 'B-SUB'
 
             # 标注object
-            object_ids = tokenizer.encode(object_, add_special_tokens=False)
+            object_ids = tokenizer.encode(preprocess(object_), add_special_tokens=False)
             [start_idx, end_idx] = find_word_in_texts(object_ids, split_text_ids)
             if start_idx is None:
                 # logger.info('语料有问题(object)！%d', ex_index)
@@ -470,6 +471,7 @@ def convert_examples_to_ner_features(
             # lable_ner[-2] = 'Relation'
             lable_ner[-2] = 'O'
             lable_ner[-3] = 'O'
+           
 
             assert len(lable_ner) == len(inputs['input_ids']) == len(inputs['token_type_ids']) ==\
                         len(inputs['attention_mask'])
@@ -479,6 +481,10 @@ def convert_examples_to_ner_features(
 
             # NER标签转换
             label_id_ner = [label_map_ner[i] for i in lable_ner]
+            if ex_index == 0:
+                logger.info(example)
+                logger.info(inputs)
+                logger.info(label_id_ner)
 
             features.append(
                 InputFeatures(

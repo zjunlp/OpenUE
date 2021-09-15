@@ -1,8 +1,7 @@
-python main.py --gpus "0," --max_epochs 2  \
+python main.py --gpus "0," --max_epochs 5  \
     --data_class REDataset \
     --litmodel_class SEQLitModel \
     --model_class BertForRelationClassification \
-    --limit_train_batches 5000 \
     --task_name seq \
     --batch_size 16 \
     --model_name_or_path bert-base-chinese \

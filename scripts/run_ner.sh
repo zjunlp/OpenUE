@@ -1,5 +1,5 @@
 python setup.py install
-CUDA_VISIBLE_DEVICES=1 python main.py --gpus "0," --max_epochs 3  \
+CUDA_VISIBLE_DEVICES=1 python main.py --gpus "0," --max_epochs 20  \
     --data_class REDataset \
     --litmodel_class RELitModel \
     --model_class BertForNER \
@@ -8,4 +8,5 @@ CUDA_VISIBLE_DEVICES=1 python main.py --gpus "0," --max_epochs 3  \
     --model_name_or_path bert-base-chinese \
     --max_seq_length 256 \
     --check_val_every_n_epoch 1 \
-    --data_dir ./dataset/ske 
+    --data_dir ./dataset/ske  \
+    --overwrite_cache

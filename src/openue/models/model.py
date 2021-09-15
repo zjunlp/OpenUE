@@ -345,12 +345,13 @@ class Inference(torch.nn.Module):
             input_split = torch.sum(mask_relation_output_sigmoid, dim=1)
             for i in range(1, batch_size):
                 input_split[i] += input_split[i-1]
-            input_ids = [input_ids[:input_split[0]]]
+            tmp_input_ids = [input_ids[:input_split[0]]]
             tmp_output = [output[:input_split[0]]]
             for i in range(1, batch_size):
-                input_ids.append(input_ids[input_split[i-1]:input_split[i]])
+                tmp_input_ids.append(input_ids[input_split[i-1]:input_split[i]])
                 tmp_output.append(output[input_split[i-1]:input_split[i]])
             output = tmp_output
+            input_ids = tmp_input_ids
 
             # 将ner的句子转化为BIOES的标签之后把实体拿出来
             # processed_results_list_BIO = []
@@ -391,7 +392,7 @@ class Inference(torch.nn.Module):
                                     triple_output[cnt].append([hh, r, tt])
 
                         index = index + 1
-                cnt += 1
+                    cnt += 1
             # 先不考虑
             # elif self.mode == "event":
             #     for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):

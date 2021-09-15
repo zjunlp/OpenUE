@@ -148,7 +148,7 @@ class Inference(torch.nn.Module):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         self.mode = "event" if "event" in args.task_name else "triple"
-        self.start_idx = self.tokenizer("[relation1]", add_special_tokens=False)['input_ids'][0]
+        self.start_idx = self.tokenizer("[relation0]", add_special_tokens=False)['input_ids'][0]
         
         if self.mode == "event":
             self.process = self.event_process
@@ -173,12 +173,9 @@ class Inference(torch.nn.Module):
         config = AutoConfig.from_pretrained(
             model_name_or_path,
             num_labels=self.num_labels_seq,
-            label2id={label: i for i, label in enumerate(self.labels_ner)},
+            label2id={label: i for i, label in enumerate(self.labels_seq)},
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_name_or_path,
-            use_fast=False,
-        )
+        
         self.model_seq = BertForRelationClassification.from_pretrained(
             model_name_or_path,
             config=config,
@@ -195,6 +192,10 @@ class Inference(torch.nn.Module):
         self.model_ner = BertForNER.from_pretrained(
             model_name_or_path,
             config=config,
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name_or_path,
+            use_fast=False,
         )
 
     def forward(self, inputs):
@@ -230,8 +231,8 @@ class Inference(torch.nn.Module):
             # 如果没有关系那就选一个最大概率的关系抽取。
             for i in range(batch_size):
                 if torch.sum(mask_relation_output_sigmoid[i]) == 0:
-                    max_relation_idx = torch.max(relation_output_sigmoid[i], dim=0)[1].tolist()[0]
-                    mask_relation_output_sigmoid[max_relation_idx] = 1
+                    max_relation_idx = torch.max(relation_output_sigmoid[i], dim=0)[1].item()
+                    mask_relation_output_sigmoid[i][max_relation_idx] = 1
 
             mask_relation_output_sigmoid = mask_relation_output_sigmoid.long()
             # mask_output [batch_size*num_relation] 表示哪一个输入是需要的
@@ -314,66 +315,89 @@ class Inference(torch.nn.Module):
                 outputs_ner = self.model_ner(**inputs_ner)[0]
             except BaseException:
                 print('23')
+            
+
 
             _, results = torch.max(outputs_ner, dim=2)
-            results_np = results.cpu().numpy()
+            results = results.cpu().tolist()
+            results = [[self.label_map_ner[__] for __ in _] for _ in results]
             attention_position_np = rel_pos.cpu().numpy()
 
-            results_list = results_np.tolist()
             attention_position_list = attention_position_np.tolist()
             predict_relation_list = relation_ids.long().tolist()
-            input_ids_list = input_ids_ner.tolist()
+            input_ids_list = input_ids_ner.cpu().tolist()
 
-            processed_results_list = []
-            processed_input_ids_list = []
-            for idx, result in enumerate(results_list):
+
+            
+
+                
+                
+                
+
+            output = []
+            input_ids = []
+            for idx, result in enumerate(results):
                 tmp1 = result[0: attention_position_list[idx]-1]
                 tmp2 = input_ids_list[idx][0: attention_position_list[idx]-1]
-                processed_results_list.append(tmp1)
-                processed_input_ids_list.append(tmp2)
+                output.append(tmp1)
+                input_ids.append(tmp2)
+            
+            input_split = torch.sum(mask_relation_output_sigmoid, dim=1)
+            for i in range(1, batch_size):
+                input_split[i] += input_split[i-1]
+            input_ids = [input_ids[:input_split[0]]]
+            tmp_output = [output[:input_split[0]]]
+            for i in range(1, batch_size):
+                input_ids.append(input_ids[input_split[i-1]:input_split[i]])
+                tmp_output.append(output[input_split[i-1]:input_split[i]])
+            output = tmp_output
 
             # 将ner的句子转化为BIOES的标签之后把实体拿出来
-            processed_results_list_BIO = []
-            for result in processed_results_list:
-                processed_results_list_BIO.append([self.label_map_ner[token] for token in result])
+            # processed_results_list_BIO = []
+            # for result in processed_results_list:
+            #     processed_results_list_BIO.append([self.label_map_ner[token] for token in result])
 
 
             # 把结果剥离出来
             index = 0
-            triple_output = []
+            triple_output = [[] for _ in range(batch_size)]
 
             # for each relation type or event type
             # by default, extract the first head and tail to construct the triples
             if self.mode == "triple":
-                for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
-                    labels = self.process(ids, BIOS)
-                    # r = label_map_seq[predict_relation_list[index]]
-                    r = predict_relation_list[index]
+                cnt = 0
+                for ids_list, BIOS_list in zip(input_ids, output):
+                    for ids, BIOS in zip(ids_list, BIOS_list):
+                        labels = self.process(ids, BIOS)
+                        # r = label_map_seq[predict_relation_list[index]]
+                        r = predict_relation_list[index] - self.start_idx
 
-                    if len(labels['subject']) == 0:
-                        h = None
-                    else:
-                        h = labels['subject']
-                        # h = ''.join(tokenizer.convert_ids_to_tokens(h))
+                        if len(labels['subject']) == 0:
+                            h = None
+                        else:
+                            h = labels['subject']
+                            # h = ''.join(tokenizer.convert_ids_to_tokens(h))
 
-                    if len(labels['object']) == 0:
-                        t = None
-                    else:
-                        t = labels['object']
-                        # t = ''.join(tokenizer.convert_ids_to_tokens(t))
+                        if len(labels['object']) == 0:
+                            t = None
+                        else:
+                            t = labels['object']
+                            # t = ''.join(tokenizer.convert_ids_to_tokens(t))
 
-                    # greedy select the head and tail
-                    if h and t:
-                        for hh in h:
-                            for tt in t:
-                                triple_output.append([hh, r, tt])
+                        # greedy select the head and tail
+                        if h and t:
+                            for hh in h:
+                                for tt in t:
+                                    triple_output[cnt].append([hh, r, tt])
 
-                    index = index + 1
-            elif self.mode == "event":
-                for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
-                    triple_output.append(dict(event_type=predict_relation_list[index], argument=self.process(ids, BIOS)))
+                        index = index + 1
+                cnt += 1
+            # 先不考虑
+            # elif self.mode == "event":
+            #     for ids, BIOS in zip(processed_input_ids_list, processed_results_list_BIO):
+            #         triple_output.append(dict(event_type=predict_relation_list[index], argument=self.process(ids, BIOS)))
 
-            return [triple_output]
+            return triple_output
         
     @staticmethod 
     def normal_process(text, result):

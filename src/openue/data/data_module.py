@@ -18,12 +18,14 @@ class REDataset(BaseDataModule):
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
         self.num_labels = len(get_labels_ner()) if args.task_name == "ner" else len(get_labels_seq())
         self.collate_fn = collator_set[args.task_name]
+        
+        num_relations = len(get_labels_seq())
 
         # 默认加入特殊token来表示关系
-        if self.args.task_name != "ner":
-            relation_tokens = [f"[relation{i}]" for i in range(self.num_labels)]
-            num_added_tokens = self.tokenizer.add_special_tokens({'additional_special_tokens': relation_tokens})
-            logger.info(f"add total special tokens: {num_added_tokens} \n {relation_tokens}")
+        
+        relation_tokens = [f"[relation{i}]" for i in range(num_relations)]
+        num_added_tokens = self.tokenizer.add_special_tokens({'additional_special_tokens': relation_tokens})
+        logger.info(f"add total special tokens: {num_added_tokens} \n {relation_tokens}")
 
     def setup(self, stage=None):
         self.data_train = get_dataset("train", self.args, self.tokenizer)
@@ -58,3 +60,6 @@ class REDataset(BaseDataModule):
         parser.add_argument("--model_name_or_path", type=str, default="bert-base-uncased", help="Number of examples to operate on per forward step.")
         parser.add_argument("--max_seq_length", type=int, default=128, help="Number of examples to operate on per forward step.")
         return parser
+
+    def get_config(self):
+        return dict(num_tokens=len(self.tokenizer), num_labels=self.num_labels)

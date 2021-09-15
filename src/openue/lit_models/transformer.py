@@ -27,6 +27,7 @@ class RELitModel(BaseLitModel):
     def __init__(self, args, data_config):
         super().__init__(args, data_config)
         self.loss_fn = nn.BCEWithLogitsLoss()
+        self.num_tokens = data_config['num_tokens']
         label_map_ner = get_labels_ner()
         self.eval_fn = partial(compute_metrics,label_map_ner=label_map_ner)
         self.best_f1 = 0
@@ -41,6 +42,7 @@ class RELitModel(BaseLitModel):
         config = AutoConfig.from_pretrained(self.args.model_name_or_path)
         config.num_labels = self.data_config['num_labels']
         self.model = BertForNER.from_pretrained(self.args.model_name_or_path, config=config)
+        self.model.resize_token_embeddings(self.data_config['num_tokens'])
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
         self.config = config
 
@@ -113,6 +115,7 @@ class SEQLitModel(BaseLitModel):
         config = AutoConfig.from_pretrained(self.args.model_name_or_path)
         config.num_labels = self.data_config['num_labels']
         self.model = BertForRelationClassification.from_pretrained(self.args.model_name_or_path, config=config)
+        self.model.resize_token_embeddings(self.data_config['num_tokens'])
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
         self.config = config
 
@@ -188,11 +191,10 @@ class INFERLitModel(BaseLitModel):
         pre = cor = true = 0
         for i in range(bsz):
             pre_triple, true_triple = pre_triples[i], [self._convert(_, batch['input_ids'][i]) for _ in triples[i]]
-            if pre_triple:
-                print(pre_triple)
             pre += len(pre_triple)
             true += len(true_triple)
             cor += self._cal(pre_triple, true_triple)
+
 
 
 

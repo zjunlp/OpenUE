@@ -38,7 +38,7 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 ## 环境
 
   - python3.6
-  - [requirements.txt](https://github.com/zju/openue/blob/master/requirements.txt) 
+  - requirements.txt
 
 
 ## 框架图

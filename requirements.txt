@@ -1,0 +1,17 @@
+jsonlines==2.0.0
+torch==1.8.1+cu111
+torchserve==0.4.0b20210521
+tqdm==4.49.0
+wandb==0.10.30
+packaging==20.9
+numpy==1.20.3
+tensorboard==2.4.1
+pytorch_lightning==1.3.1
+transformers==4.7.0
+apex==0.9.10dev
+comet_ml==3.15.2
+dataclasses==0.8
+PyYAML==5.4.1
+tensorboardX==2.4
+textbrewer==0.2.1.post1
+ts==0.5.1

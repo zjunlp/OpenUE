@@ -12,7 +12,7 @@ from openue.models.model import Inference
 # Hide lines above until Lab 5
 
 from .base import BaseLitModel
-from .metric import f1_eval, compute_f1, acc, compute_metrics, seq_metric
+from .metric import compute_f1, acc, compute_metrics, seq_metric
 from transformers.optimization import (
     get_linear_schedule_with_warmup,
 )
@@ -45,6 +45,10 @@ class RELitModel(BaseLitModel):
         self.model.resize_token_embeddings(self.data_config['num_tokens'])
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
         self.config = config
+
+    def _init_label_embedding(self):
+        #TODO put the right meaning into the [relation{i}]
+        pass
 
     def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         loss, logits = self.model(**batch)

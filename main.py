@@ -66,7 +66,9 @@ def _save_model(litmodel, tokenizer, path):
     litmodel.config.save_pretrained(path)
 
 
+
 def main():
+
     parser = _setup_parser()
     args = parser.parse_args()
 
@@ -87,7 +89,7 @@ def main():
         logger.log_hyperparams(vars(args))
     early_callback = pl.callbacks.EarlyStopping(monitor="Eval/f1", mode="max", patience=5)
     model_checkpoint = pl.callbacks.ModelCheckpoint(monitor="Eval/f1", mode="max",
-        filename=args.task_name + r'/{epoch}-{Eval/f1:.2f}',
+        filename=args.data_dir.split("/")[-1] +'/'+ args.task_name + r'/{epoch}-{Eval/f1:.2f}',
         dirpath="output",
         save_weights_only=True
     )

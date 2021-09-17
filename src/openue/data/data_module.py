@@ -16,10 +16,10 @@ class REDataset(BaseDataModule):
     def __init__(self, args) -> None:
         super().__init__(args)
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
-        self.num_labels = len(get_labels_ner()) if args.task_name == "ner" else len(get_labels_seq())
+        self.num_labels = len(get_labels_ner()) if args.task_name == "ner" else len(get_labels_seq(args))
         self.collate_fn = collator_set[args.task_name]
         
-        num_relations = len(get_labels_seq())
+        num_relations = len(get_labels_seq(args))
 
         # 默认加入特殊token来表示关系
         

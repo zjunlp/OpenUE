@@ -28,7 +28,7 @@ def get_dataset(mode, args, tokenizer):
     dataset = OpenUEDataset(
         data_dir=args.data_dir,
         tokenizer=tokenizer,
-        labels_seq=get_labels_seq(),
+        labels_seq=get_labels_seq(args),
         labels_ner=get_labels_ner(),
         model_type=args.model_type,
         max_seq_length=args.max_seq_length,

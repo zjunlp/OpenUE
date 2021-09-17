@@ -105,7 +105,7 @@ class BertForNER(trans.BertPreTrainedModel):
         )
 
         # batch_size * 107 * hidden_size
-        sequence_poolout_output = outputs[0]
+        sequence_poolout_output = self.dropout(outputs[0])
         # batch_size * 107 * 6
         logits = self.token_classification(sequence_poolout_output)
 
@@ -162,7 +162,7 @@ class Inference(torch.nn.Module):
         self.num_labels_ner = len(self.labels_ner)
 
         # 读取seq的label
-        self.labels_seq = get_labels_seq()
+        self.labels_seq = get_labels_seq(self.args)
         self.label_map_seq: Dict[int, str] = {i: label for i, label in enumerate(self.labels_seq)}
         self.num_labels_seq = len(self.labels_seq)
 

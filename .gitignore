@@ -3,7 +3,6 @@ raw_data
 *.log
 *.json 
 output
-*.txt
 *.pyc
 __pycache__
 export
@@ -155,3 +154,5 @@ distill
 output_seq
 seq_model
 dataset
+config/
+*/my*

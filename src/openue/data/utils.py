@@ -5,6 +5,7 @@ import logging
 import os
 from dataclasses import dataclass
 from enum import Enum
+from re import sub
 from shutil import Error
 from typing import List, Optional, Union, Dict
 
@@ -318,7 +319,7 @@ def read_examples_from_file(data_dir, mode: Union[Split, str]) -> List[InputExam
         text_id = 0
         
         for line in f.readlines():
-            item = json.loads(line)
+            item = eval(line)
             text = item['text']
             triples = []
             for triple in item['spo_list']:
@@ -362,6 +363,7 @@ def convert_examples_to_seq_features(
         label_ids_seq = []
         for triple in example.triples:
             label_ids_seq.append(label2id[triple[1]])
+        label_ids_seq = torch.sum(torch.nn.functional.one_hot(torch.tensor(label_ids_seq), num_classes=len(labels_seq)), dim=0).float()
 
         features.append(InputFeatures(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'],
                                           token_type_ids=inputs['token_type_ids'], label_ids_seq=label_ids_seq))
@@ -371,6 +373,7 @@ def convert_examples_to_seq_features(
 
 
 def preprocess(text):
+    return text.lower()
     return " ".join([_ for _ in text]).lower()
 
 def convert_examples_to_ner_features(
@@ -403,9 +406,9 @@ def convert_examples_to_ner_features(
     def find_word_in_texts(word_ids, texts_ids):
         length = len(word_ids)
         for i, W in enumerate(texts_ids):
-            if texts_ids[i] == word_ids[0]:
-                if texts_ids[i: i + length] == word_ids:
-                    return i, i + length
+            if (i+length) >= len(texts_ids): break
+            if texts_ids[i: i + length] == word_ids:
+                return i, i + length
         return None, None
 
     for (ex_index, example) in enumerate(examples):
@@ -416,10 +419,32 @@ def convert_examples_to_ner_features(
         
 
         text = example.words
+        
+        tmp_triples = {}
         for triple in example.triples:
             subject = preprocess(triple[0])
             relation = triple[1]
             object_ = preprocess(triple[2])
+            if relation not in tmp_triples:
+                tmp_triples[relation] = [[subject, relation, object_]]
+            else:
+                tmp_triples[relation].append([subject, relation, object_])
+        
+        my_triples = []
+        for k, v in tmp_triples.items():
+            my_triples.append([[v[i][0] for i in range(len(v))], k, [v[i][2] for i in range(len(v))]])
+        
+        
+        hard_to_solve = 0
+        #  triple [[subject list], r, [object list]]
+        for triple in my_triples:
+            subject_list = triple[0]
+            relation = triple[1]
+            object_list = triple[2]
+            
+            # same entity map as subject and object            
+            if set(subject_list) & set(object_list) :
+                hard_to_solve += 1
 
             # cls w1 w2 .. sep w3 w4 sep 000000000
             # token_type
@@ -444,43 +469,52 @@ def convert_examples_to_ner_features(
             split_text_ids = inputs['input_ids']
             # ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation"]
             # 默认所有位置都为'O'
-            lable_ner = ['O' for i in range(len(split_text_ids))]
+            label_ner = ['O' for i in range(len(split_text_ids))]
 
             # 标注subject
-            subject_ids = tokenizer.encode(preprocess(subject), add_special_tokens=False)
-            [start_idx, end_idx] = find_word_in_texts(subject_ids, split_text_ids)
-            if start_idx is None:
-                # logger.info('语料有问题(subject)！%d', ex_index)
-                counter = counter + 1
-                continue
-            lable_ner[start_idx: end_idx] = ['I-SUB' for i in range(len(subject_ids))]
-            lable_ner[start_idx] = 'B-SUB'
+            continue_flag = False
+            for subject in subject_list:
+                subject_ids = tokenizer.encode(subject, add_special_tokens=False)
+                [start_idx, end_idx] = find_word_in_texts(subject_ids, split_text_ids)
+                if start_idx is None:
+                    # logger.info('语料有问题(subject)！%d', ex_index)
+                    continue_flag = True
+                    break
+                label_ner[start_idx: end_idx] = ['I-SUB' for i in range(len(subject_ids))]
+                label_ner[start_idx] = 'B-SUB'
 
+            if continue_flag: continue
             # 标注object
-            object_ids = tokenizer.encode(preprocess(object_), add_special_tokens=False)
-            [start_idx, end_idx] = find_word_in_texts(object_ids, split_text_ids)
-            if start_idx is None:
-                # logger.info('语料有问题(object)！%d', ex_index)
-                counter = counter + 1
-                continue
-            lable_ner[start_idx: end_idx] = ['I-OBJ' for i in range(len(object_ids))]
-            lable_ner[start_idx] = 'B-OBJ'
+            
+            for object_ in object_list:
+                object_ids = tokenizer.encode(object_, add_special_tokens=False)
+                [start_idx, end_idx] = find_word_in_texts(object_ids, split_text_ids)
+                if start_idx is None:
+                    # logger.info('语料有问题(object)！%d', ex_index)
+                    counter = counter + 1
+                    continue_flag = True
+                    break
+                label_ner[start_idx: end_idx] = ['I-OBJ' for i in range(len(object_ids))]
+                label_ner[start_idx] = 'B-OBJ'
 
+            if continue_flag: continue
             # 标注最后三个字符串，SEP、Relation、SEP
-            lable_ner[-1] = 'O'
-            # lable_ner[-2] = 'Relation'
-            lable_ner[-2] = 'O'
-            lable_ner[-3] = 'O'
+            label_ner[0] = 'CLS'
+            label_ner[-1] = 'SEP'
+            label_ner[-2] = 'Relation'
+            # label_ner[-2] = 'O'
+            label_ner[-3] = 'SEP'
+            
            
 
-            assert len(lable_ner) == len(inputs['input_ids']) == len(inputs['token_type_ids']) ==\
+            assert len(label_ner) == len(inputs['input_ids']) == len(inputs['token_type_ids']) ==\
                         len(inputs['attention_mask'])
 
             # 关系抽取标签
             label_id_seq = label_map_seq[relation]
 
             # NER标签转换
-            label_id_ner = [label_map_ner[i] for i in lable_ner]
+            label_id_ner = [label_map_ner[i] for i in label_ner]
             if ex_index == 0:
                 logger.info(example)
                 logger.info(inputs)
@@ -498,7 +532,9 @@ def convert_examples_to_ner_features(
             )
             assert len(inputs['input_ids']) <= max_seq_length
 
+    
     print('语料有问题句子比例是', str(counter/len(examples)))
+    logger.warning(f"hard to solve total {hard_to_solve} samples. Write code to fix it!")
     return features
 
 
@@ -574,10 +610,18 @@ def convert_examples_to_interactive_features(
 
 
 def get_labels_ner() -> List[str]:
-    return ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation"]
+    return ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation", "CLS", "SEP"]
 
-def get_labels_seq() -> List[str]:
-    class_label = ['Empty', '丈夫', '上映时间', '专业代码', '主持人', '主演', '主角', '人口数量', '作曲', '作者', '作词', '修业年限', '出品公司', '出版社', '出生地', '出生日期','创始人', '制片人', '占地面积', '号', '嘉宾', '国籍', '妻子', '字', '官方语言', '导演', '总部地点', '成立日期', '所在城市', '所属专辑', '改编自', '朝代', '歌手', '母亲', '毕业院校', '民族', '气候', '注册资本', '海拔', '父亲', '目', '祖籍', '简称', '编剧', '董事长', '身高', '连载网站','邮政编码', '面积', '首都']
+def get_labels_seq(args) -> List[str]:
+    if "ske" not in args.data_dir:
+        with open(f"{args.data_dir}/rel2id.json", "r") as file:
+            t = json.load(file)[0]
+            class_label = t.values()
+    else:
+        with open(f"{args.data_dir}/rel2id.json", "r") as file:
+            t = json.load(file)
+            class_label = t.keys()
+    # class_label = ['Empty', '丈夫', '上映时间', '专业代码', '主持人', '主演', '主角', '人口数量', '作曲', '作者', '作词', '修业年限', '出品公司', '出版社', '出生地', '出生日期','创始人', '制片人', '占地面积', '号', '嘉宾', '国籍', '妻子', '字', '官方语言', '导演', '总部地点', '成立日期', '所在城市', '所属专辑', '改编自', '朝代', '歌手', '母亲', '毕业院校', '民族', '气候', '注册资本', '海拔', '父亲', '目', '祖籍', '简称', '编剧', '董事长', '身高', '连载网站','邮政编码', '面积', '首都']
     return class_label
 
 def openue_data_collator_seq(features):
@@ -585,7 +629,6 @@ def openue_data_collator_seq(features):
     max_length = max(max_length)
 
     features_new = []
-    length_seq_label = len(get_labels_seq())
 
     for f in features:
         length = len(f.input_ids)
@@ -598,15 +641,8 @@ def openue_data_collator_seq(features):
         features_['attention_mask'] = f.attention_mask + add_zero  # 补0
         features_['token_type_ids'] = f.token_type_ids + add_zero  # 补0
 
-        label_id_seq = np.zeros(length_seq_label).tolist()
-        for relation_id in f.label_ids_seq:
-            if isinstance(relation_id, int):
-                label_id_seq[relation_id] = 1
-            else:
-                print('error')
-                print(relation_id)
-                print(label_id_seq)
-        features_['label_ids_seq'] = label_id_seq
+        
+        features_['label_ids_seq'] = f.label_ids_seq
         features_new.append(features_)
 
     # 将结构体格式变成dict格式
@@ -616,10 +652,9 @@ def openue_data_collator_seq(features):
     first = features_new[0]
     batch = {}
 
-    batch["label_ids_seq"] = torch.tensor([f["label_ids_seq"] for f in features_new], dtype=torch.float)
 
     for k, v in first.items():
-        if k not in ("label_ids_seq") and v is not None and not isinstance(v, str):
+        if v is not None and not isinstance(v, str):
             if isinstance(v, torch.Tensor):
                 batch[k] = torch.stack([f[k] for f in features_new])
             else:

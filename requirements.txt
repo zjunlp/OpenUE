@@ -1,5 +1,4 @@
 jsonlines==2.0.0
-torch==1.8.1+cu111
 torchserve==0.4.0b20210521
 tqdm==4.49.0
 wandb==0.10.30

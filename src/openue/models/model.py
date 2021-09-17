@@ -12,6 +12,7 @@ class BertForRelationClassification(trans.BertPreTrainedModel):
         self.num_labels = config.num_labels
         self.bert = trans.BertModel(config)
         self.relation_classification = torch.nn.Linear(config.hidden_size, config.num_labels)
+        self.loss_fn = torch.nn.BCEWithLogitsLoss()
         self.init_weights()
 
     def forward(
@@ -53,7 +54,7 @@ class BertForRelationClassification(trans.BertPreTrainedModel):
             # 跟label算个loss
             Loss = torch.nn.BCELoss()
 
-            loss = Loss(relation_output_sigmoid, label_ids_seq)
+            loss = self.loss_fn(relation_output, label_ids_seq)
 
             return (loss, relation_output_sigmoid, relation_output, cls_output)
 

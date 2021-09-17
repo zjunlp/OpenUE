@@ -53,9 +53,10 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 ##### Anaconda 环境
 
 ```
-conda create -n openue python=3.6
+conda create -n openue python=3.8
 conda activate openue
 pip install -r requirements.txt
+conda install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvidia # 视自己Nvidia驱动环境选择对应的cudatoolkit版本
 python setup.py install
 ```
 

@@ -43,7 +43,7 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 
 ## 框架图
 
-![框架](./imgs/overview.png)
+![框架](./imgs/overview1.png)
 
 
 ## 快速开始

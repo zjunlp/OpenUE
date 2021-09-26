@@ -48,9 +48,9 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 
 ## 快速开始
 
-#### 安装
+### 安装
 
-##### Anaconda 环境
+#### Anaconda 环境
 
 ```
 conda create -n openue python=3.8
@@ -90,7 +90,10 @@ python setup.py install
 ./scripts/run_seq.sh
 ```
 
+### notebook快速开始
 
+![ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
+在这个数据集中具体介绍了如何使用openue中的`lit_models`,`models`和`data`。方便用户构建自己的训练逻辑。
 
 
 ## 引用

@@ -45,6 +45,21 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 
 ![框架](./imgs/overview1.png)
 
+其中主要分为三个模块，`models`,`lit_models`和`data`模块。
+
+### models 模块
+
+其存放了我们主要的三个模型，针对整句的关系识别模型，针对已知句中关系的命名实体识别模型，还有将前两者整合起来的推理验证模型。其主要源自`transformers`库中的已定义好的预训练模型。
+
+### lit_models 模块
+
+其中的代码主要继承自`pytorch_lightning.Trainer`。其可以自动构建单卡，多卡，GPU,TPU等不同硬件下的模型训练。我们在其中定义了`training_steps`和`validation_step`即可自动构建训练逻辑进行训练。
+
+由于其硬件不敏感，所以我们可以使用多种不同环境下调用OpenUE训练模块。
+
+### data 模块
+
+`data`中存放了针对不同数据集进行不同操作的代码。使用了`transformers`库中的`tokenizer`先对数据进行分词处理再根据不同需要将数据变成我们需要的features。
 
 ## 快速开始
 

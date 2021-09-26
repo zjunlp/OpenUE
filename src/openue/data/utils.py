@@ -3,9 +3,10 @@
 
 import logging
 import os
+from tqdm import tqdm
 from dataclasses import dataclass
 from enum import Enum
-from re import sub
+from re import DEBUG, sub
 from shutil import Error
 from typing import List, Optional, Union, Dict
 
@@ -352,7 +353,7 @@ def convert_examples_to_seq_features(
     features = []
     label2id = {label: i for i, label in enumerate(labels_seq)}
 
-    for (ex_index, example) in enumerate(examples):
+    for (ex_index, example) in tqdm(enumerate(examples), total=len(examples)):
         inputs = tokenizer(
             preprocess(example.words),
             add_special_tokens=True,
@@ -363,7 +364,12 @@ def convert_examples_to_seq_features(
         label_ids_seq = []
         for triple in example.triples:
             label_ids_seq.append(label2id[triple[1]])
+        if len(label_ids_seq) == 0:
+            print("error in dataset no relation ids in this sample, so skip this sample!")
+            continue
         label_ids_seq = torch.sum(torch.nn.functional.one_hot(torch.tensor(label_ids_seq), num_classes=len(labels_seq)), dim=0).float()
+        # the relation may show more than once, [1,2,1,0] -> [1,1,1,0]
+        label_ids_seq[label_ids_seq>0] = 1
 
         features.append(InputFeatures(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'],
                                           token_type_ids=inputs['token_type_ids'], label_ids_seq=label_ids_seq))
@@ -574,9 +580,6 @@ def convert_examples_to_interactive_features(
             max_length=max_seq_length-2,
             truncation="longest_first"
         )
-        #! 模型问题，不是我的问题
-        if 100 in inputs['input_ids']:
-            continue
         bad_flag = False
         
         triples = []
@@ -613,14 +616,9 @@ def get_labels_ner() -> List[str]:
     return ["O", "B-SUB", "I-SUB", "B-OBJ", "I-OBJ", "Relation", "CLS", "SEP"]
 
 def get_labels_seq(args) -> List[str]:
-    if "ske" not in args.data_dir:
-        with open(f"{args.data_dir}/rel2id.json", "r") as file:
-            t = json.load(file)[0]
-            class_label = t.values()
-    else:
-        with open(f"{args.data_dir}/rel2id.json", "r") as file:
-            t = json.load(file)
-            class_label = t.keys()
+    with open(f"{args.data_dir}/rel2id.json", "r") as file:
+        t = json.load(file)
+        class_label = t.keys()
     # class_label = ['Empty', '丈夫', '上映时间', '专业代码', '主持人', '主演', '主角', '人口数量', '作曲', '作者', '作词', '修业年限', '出品公司', '出版社', '出生地', '出生日期','创始人', '制片人', '占地面积', '号', '嘉宾', '国籍', '妻子', '字', '官方语言', '导演', '总部地点', '成立日期', '所在城市', '所属专辑', '改编自', '朝代', '歌手', '母亲', '毕业院校', '民族', '气候', '注册资本', '海拔', '父亲', '目', '祖籍', '简称', '编剧', '董事长', '身高', '连载网站','邮政编码', '面积', '首都']
     return class_label
 

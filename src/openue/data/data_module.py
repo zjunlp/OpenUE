@@ -22,10 +22,16 @@ class REDataset(BaseDataModule):
         num_relations = len(get_labels_seq(args))
 
         # 默认加入特殊token来表示关系
+        add_flag = False
+        for i in range(num_relations):
+            if f"[relation{i}]" not in self.tokenizer.get_added_vocab():
+                add_flag = True
+                break
         
-        relation_tokens = [f"[relation{i}]" for i in range(num_relations)]
-        num_added_tokens = self.tokenizer.add_special_tokens({'additional_special_tokens': relation_tokens})
-        logger.info(f"add total special tokens: {num_added_tokens} \n {relation_tokens}")
+        if add_flag:
+            relation_tokens = [f"[relation{i}]" for i in range(num_relations)]
+            num_added_tokens = self.tokenizer.add_special_tokens({'additional_special_tokens': relation_tokens})
+            logger.info(f"add total special tokens: {num_added_tokens} \n {relation_tokens}")
 
     def setup(self, stage=None):
         self.data_train = get_dataset("train", self.args, self.tokenizer)

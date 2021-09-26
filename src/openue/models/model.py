@@ -51,9 +51,6 @@ class BertForRelationClassification(trans.BertPreTrainedModel):
         if label_ids_seq is None:
             return (relation_output_sigmoid, relation_output, cls_output)
         else:
-            # 跟label算个loss
-            Loss = torch.nn.BCELoss()
-
             loss = self.loss_fn(relation_output, label_ids_seq)
 
             return (loss, relation_output_sigmoid, relation_output, cls_output)
@@ -327,12 +324,6 @@ class Inference(torch.nn.Module):
             attention_position_list = attention_position_np.tolist()
             predict_relation_list = relation_ids.long().tolist()
             input_ids_list = input_ids_ner.cpu().tolist()
-
-
-            
-
-                
-                
                 
 
             output = []

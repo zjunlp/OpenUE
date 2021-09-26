@@ -61,6 +61,7 @@ def _setup_parser():
     return parser
 
 def _save_model(litmodel, tokenizer, path):
+    os.system(f"mkdir -p {path}")
     litmodel.model.save_pretrained(path)
     tokenizer.save_pretrained(path)
     litmodel.config.save_pretrained(path)
@@ -71,6 +72,16 @@ def main():
 
     parser = _setup_parser()
     args = parser.parse_args()
+
+    if not os.path.exists("config"):
+        os.mkdir("config")
+    config_file_name = time.strftime("%H:%M:%S", time.localtime()) + ".yaml"
+    day_name = time.strftime("%Y-%m-%d")
+    if not os.path.exists(os.path.join("config", day_name)):
+        os.mkdir(os.path.join("config", time.strftime("%Y-%m-%d")))
+    config = vars(args)
+    with open(os.path.join(os.path.join("config", day_name), config_file_name), "w") as file:
+        file.write(yaml.dump(config))
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -112,18 +123,10 @@ def main():
 
     path = model_checkpoint.best_model_path
 
-    # if not os.path.exists("config"):
-    #     os.mkdir("config")
-    # config_file_name = time.strftime("%H:%M:%S", time.localtime()) + ".yaml"
-    # day_name = time.strftime("%Y-%m-%d")
-    # if not os.path.exists(os.path.join("config", day_name)):
-    #     os.mkdir(os.path.join("config", time.strftime("%Y-%m-%d")))
-    # config = vars(args)
-    # config["path"] = path
-    # with open(os.path.join(os.path.join("config", day_name), config_file_name), "w") as file:
-    #     file.write(yaml.dump(config))
+   
 
-    # lit_model.load_state_dict(torch.load(path)["state_dict"])
+    # make sure the litmodel is the best model in dev
+    if not test_only: lit_model.load_state_dict(torch.load(path)["state_dict"])
 
 
     trainer.test(lit_model, datamodule=data)

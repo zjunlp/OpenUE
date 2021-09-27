@@ -10,6 +10,7 @@ class BertForRelationClassification(trans.BertPreTrainedModel):
         self.num_labels = config.num_labels
         self.bert = trans.BertModel(config)
         self.relation_classification = torch.nn.Linear(config.hidden_size, config.num_labels)
+        self.loss_fn = torch.nn.BCEWithLogitsLoss()
         self.init_weights()
 
     def forward(
@@ -48,10 +49,7 @@ class BertForRelationClassification(trans.BertPreTrainedModel):
         if label_ids_seq is None:
             return (relation_output_sigmoid, relation_output, cls_output)
         else:
-            # 跟label算个loss
-            Loss = torch.nn.BCELoss()
-
-            loss = Loss(relation_output_sigmoid, label_ids_seq)
+            loss = self.loss_fn(relation_output, label_ids_seq)
 
             return (loss, relation_output_sigmoid, relation_output, cls_output)
 
@@ -90,11 +88,6 @@ class BertForNER(trans.BertPreTrainedModel):
     ):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-        inputs = {}
-        inputs['input_ids'] = input_ids
-        inputs['attention_mask'] = attention_mask
-        inputs['token_type_ids'] = token_type_ids
-
         outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
@@ -108,7 +101,7 @@ class BertForNER(trans.BertPreTrainedModel):
         )
 
         # batch_size * 107 * hidden_size
-        sequence_poolout_output = outputs[0]
+        sequence_poolout_output = self.dropout(outputs[0])
         # batch_size * 107 * 6
         logits = self.token_classification(sequence_poolout_output)
 
@@ -131,6 +124,3 @@ class BertForNER(trans.BertPreTrainedModel):
         output = (logits,) + outputs[2:]
         return ((loss,) + output) if loss is not None else output
     
-    
-    def add_to_argparse(parser):
-        parser.add_argument("--model_type", type=str, default="bert")

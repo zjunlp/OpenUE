@@ -23,7 +23,6 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
 
 **特点**
 
-  - [用户文档](https://openue-docs.readthedocs.io/en/latest/) 
 
   - 基于SOTA模型的NLP抽取任务 (兼容BERT, XLNet等预训练模型.)
     - 实体关系抽取
@@ -32,12 +31,10 @@ OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于p
     - <em> 更多的任务 </em>
   - 训练和测试接口
   - 快速部署NLP模型
-  - [容器部署](https://hub.docker.com/r/)
-    - 敏捷部署支持GPU的容器
 
 ## 环境
 
-  - python3.6
+  - python3.8
   - requirements.txt
 
 

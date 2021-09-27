@@ -352,6 +352,7 @@ def convert_examples_to_seq_features(
 ):
     features = []
     label2id = {label: i for i, label in enumerate(labels_seq)}
+    cnt = 0
 
     for (ex_index, example) in tqdm(enumerate(examples), total=len(examples)):
         inputs = tokenizer(
@@ -365,7 +366,7 @@ def convert_examples_to_seq_features(
         for triple in example.triples:
             label_ids_seq.append(label2id[triple[1]])
         if len(label_ids_seq) == 0:
-            print("error in dataset no relation ids in this sample, so skip this sample!")
+            cnt += 1
             continue
         label_ids_seq = torch.sum(torch.nn.functional.one_hot(torch.tensor(label_ids_seq), num_classes=len(labels_seq)), dim=0).float()
         # the relation may show more than once, [1,2,1,0] -> [1,1,1,0]
@@ -374,6 +375,7 @@ def convert_examples_to_seq_features(
         features.append(InputFeatures(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'],
                                           token_type_ids=inputs['token_type_ids'], label_ids_seq=label_ids_seq))
 
+    logger.warning(f"total {cnt} samples error in the dataset!")
     return features
 
 

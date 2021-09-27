@@ -103,11 +103,11 @@ python setup.py install
 ```
 
 下面使用一个小demo简要展示训练过程，其中仅训练一个batch来加速展示。
+![框架](./imgs/demo.gif)
 ### notebook快速开始
 
 [ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
 使用中文数据集作为例子具体介绍了如何使用openue中的`lit_models`,`models`和`data`。方便用户构建自己的训练逻辑。
-![框架](./imgs/demo.gif)
 
 
 ## 引用

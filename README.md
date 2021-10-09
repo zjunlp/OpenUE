@@ -12,7 +12,7 @@
         <img src="https://badge.fury.io/py/openue.svg">
     </a>
     <a href="https://github.com/zjunlp/OpenUE/blob/main/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/zjunlp/openue.svg?color=blue">
+        <img alt="GitHub" src="https://img.shields.io/github/license/zjunlp/openue.svg?color=green">
     </a>
         <a href="http://openue.top">
         <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/transformers/index.html.svg?down_color=red&down_message=offline&up_message=online">

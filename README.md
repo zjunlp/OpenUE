@@ -1,6 +1,6 @@
 [**中文说明**](https://github.com/zjunlp/openue/blob/master/README_CN.md) | [**English**](https://github.com/zjunlp/openue/)
 <p align="center">
-    <a href="https://github.com/zjunlp/openue"> <img src="https://raw.githubusercontent.com/zjunlp/openue/master/docs/images/logo.png" width="400"/></a>
+    <a href="https://github.com/zjunlp/openue"> <img src="https://github.com/zjunlp/OpenUE/blob/main/imgs/logo.png" width="400"/></a>
 </p>
 
 <p align="center">
@@ -11,8 +11,8 @@
     <a href="https://badge.fury.io/py/openue">
         <img src="https://badge.fury.io/py/openue.svg">
     </a>
-    <a href="https://github.com/zjunlp/openue/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/zjunlp/openue">
+    <a href="https://github.com/zjunlp/OpenUE/blob/main/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/zjunlp/openue.svg?color=green">
     </a>
         <a href="http://openue.top">
         <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/transformers/index.html.svg?down_color=red&down_message=offline&up_message=online">

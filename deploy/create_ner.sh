@@ -1,7 +1,3 @@
-
-
-
-
 torch-model-archiver --model-name BERTForNER_en  \
 	--version 1.0 --serialized-file ./ner_en/pytorch_model.bin \
 	--handler ./deploy/handler.py \

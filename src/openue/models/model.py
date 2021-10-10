@@ -449,6 +449,8 @@ class Inference(torch.nn.Module):
         # print(labels)
         return labels
     
+
+
     @staticmethod
     def add_to_argparse(parser):
         parser.add_argument("--seq_model_name_or_path", type=str, default="seq_model")

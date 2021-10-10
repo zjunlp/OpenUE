@@ -162,6 +162,7 @@ class SEQLitModel(BaseLitModel):
 class INFERLitModel(BaseLitModel):
     def __init__(self, args, data_config):
         super().__init__(args, data_config)
+        self.data_config = data_config
         self._init_model()
         
 
@@ -172,7 +173,7 @@ class INFERLitModel(BaseLitModel):
     def _init_model(self):
         #TODO put the parameters from the data_config to the config, maybe use the __dict__?
         self.model = Inference(self.args)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
+        self.tokenizer = self.data_config['tokenizer']
         
     @staticmethod
     def _convert(triple, input_ids):
@@ -201,7 +202,6 @@ class INFERLitModel(BaseLitModel):
 
 
 
-
         return dict(pre=pre, true=true, cor=cor)
 
     def test_epoch_end(self, outputs) -> None:
@@ -213,3 +213,16 @@ class INFERLitModel(BaseLitModel):
         r = cor / true if true else 0
         f1 = 2 * p * r / (p+r) if p+r else 0
         self.log("Test/f1", f1)
+
+    def inference(self, inputs):
+        triple_output = self.model(inputs)
+        spo_output = [[] for _ in range(len(triple_output))]
+        for idx, triples in enumerate(triple_output):
+            for triple in triples:
+                h = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(triple[0]))
+                t = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(triple[2]))
+                spo_output[idx].append(dict(s=h,p=triple[1],o=t))
+
+        return spo_output
+                
+            

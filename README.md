@@ -95,10 +95,14 @@ python setup.py install
 }
 ```
 
+### 训练模型
+
 将数据存放在`./dataset/`目录下之后进行训练。运行以下脚本，将自动下载数据集和预训练模型并开始训练，过程中请保持网络畅通以免模型和数据下载失败。
 
 ```shell
+# 训练NER命名实体识别模块
 ./scripts/run_ner.sh
+# 训练SEQ句中关系分类模块
 ./scripts/run_seq.sh
 ```
 
@@ -109,6 +113,32 @@ python setup.py install
 [ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
 使用中文数据集作为例子具体介绍了如何使用openue中的`lit_models`,`models`和`data`。方便用户构建自己的训练逻辑。
 
+## 快速部署模型
+
+### 下载torchserve-docker
+
+[docker下载](https://github.com/pytorch/serve/blob/master/docker/README.md)
+
+### 创建模型对应的handler类
+
+我们已经在`deploy`文件夹下放置了对应的部署类`handler_seq.py`和`handler_ner.py`。
+
+```shell
+# 使用torch-model-archiver 将模型文件进行打包，其中
+# extra-files需要加入以下文件 
+# config.json, setup_config.json 针对模型和推理的配置config。 
+# vocab.txt : 分词器tokenizer所使用的字典
+# model.py : 模型具体代码
+
+torch-model-archiver --model-name BERTForNER_en  \
+	--version 1.0 --serialized-file ./ner_en/pytorch_model.bin \
+	--handler ./deploy/handler.py \
+	--extra-files "./ner_en/config.json,./ner_en/setup_config.json,./ner_en/vocab.txt,./deploy/model.py" -f
+
+# 将打包好的.mar文件加入到model-store文件夹下，并使用curl命令将打包的文件部署到docker中。
+sudo cp ./BERTForSEQ_en.mar /home/model-server/model-store/
+curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=false&url=BERTForSEQ_en.mar&batch_size=1&max_batch_delay=200"
+```
 
 ## 引用
 

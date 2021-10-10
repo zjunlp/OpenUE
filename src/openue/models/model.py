@@ -1,5 +1,6 @@
 import transformers as trans
 import torch
+import pytorch_lightning as pl
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers import AutoTokenizer
@@ -131,7 +132,7 @@ class BertForNER(trans.BertPreTrainedModel):
         parser.add_argument("--model_type", type=str, default="bert")
 
 
-class Inference(torch.nn.Module):
+class Inference(pl.LightningModule):
     """
         input the text, 
         return the triples
@@ -143,7 +144,6 @@ class Inference(torch.nn.Module):
         self._init_labels()    
         self._init_models()
         
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         self.mode = "event" if "event" in args.task_name else "triple"
         self.start_idx = self.tokenizer("[relation0]", add_special_tokens=False)['input_ids'][0]
@@ -204,9 +204,9 @@ class Inference(torch.nn.Module):
         将其增加了关系类别embedding之后，输入到model_ner中，得到input_ids中每一个token的类别，之后常规的实体识别。
         
         """
-        for k, v in inputs.items():
-            if isinstance(v, torch.Tensor):
-                inputs[k] = v.to(self.device)
+        # for k, v in inputs.items():
+        #     if isinstance(v, torch.Tensor):
+        #         inputs[k] = v.to(self.device)
 
         inputs_seq = {'input_ids': inputs['input_ids'],
                     'token_type_ids': inputs['token_type_ids'],

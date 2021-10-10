@@ -128,6 +128,11 @@ def main():
     # make sure the litmodel is the best model in dev
     if not test_only: lit_model.load_state_dict(torch.load(path)["state_dict"])
 
+    # show the inference function
+    if test_only:
+        inputs = data.tokenizer("姚明出生在中国。", return_tensors='pt')
+        print(lit_model.inference(inputs))
+
 
     trainer.test(lit_model, datamodule=data)
     

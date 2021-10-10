@@ -221,7 +221,7 @@ class INFERLitModel(BaseLitModel):
             for triple in triples:
                 h = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(triple[0]))
                 t = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(triple[2]))
-                spo_output[idx].append(dict(s=h,p=triple[1],o=t))
+                spo_output[idx].append(dict(subject=h,predict=self.model.label_map_seq[triple[1]],object=t))
 
         return spo_output
                 

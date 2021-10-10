@@ -19,7 +19,7 @@
     </a>
 </p>
 
-OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于python 初学者或有经验的机器学习开发人员。
+[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个简单可用的通用自然语言信息抽取工具，适用于python 初学者或有经验的机器学习开发人员。
 
 **特点**
 
@@ -139,6 +139,15 @@ torch-model-archiver --model-name BERTForNER_en  \
 sudo cp ./BERTForSEQ_en.mar /home/model-server/model-store/
 curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=false&url=BERTForSEQ_en.mar&batch_size=1&max_batch_delay=200"
 ```
+## 致谢
+
+> 实验室: [浙江大学知识引擎实验室](http://openkg.cn/)
+
+> 导师: 陈华钧，张宁豫
+---
+这个工具主要由以下同学作出贡献（排名不分先后）：谢辛、毕帧、王泽元、陈想、余海阳、田玺、邓淑敏等
+
+<br>
 
 ## 引用
 

@@ -139,13 +139,9 @@ torch-model-archiver --model-name BERTForNER_en  \
 sudo cp ./BERTForSEQ_en.mar /home/model-server/model-store/
 curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=false&url=BERTForSEQ_en.mar&batch_size=1&max_batch_delay=200"
 ```
-## 致谢
+## 项目成员
 
-> 实验室: [浙江大学知识引擎实验室](http://openkg.cn/)
-
-> 导师: 陈华钧，张宁豫
----
-这个工具主要由以下同学作出贡献（排名不分先后）：谢辛、毕帧、王泽元、陈想、余海阳、田玺、邓淑敏等
+张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、田玺、邓淑敏、陈漠沙、谭传奇、黄非、郑国轴、陈华钧等
 
 <br>
 

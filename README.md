@@ -72,6 +72,12 @@ conda install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvid
 python setup.py install
 ```
 
+#### pip安装
+
+```shell
+pip install openue
+```
+
 #### 使用方式
 
 数据格式为`json`文件，具体例子如下。

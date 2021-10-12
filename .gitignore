@@ -158,4 +158,5 @@ dataset
 *.txt
 
 config/2*
-my*
+
+my_upload.sh

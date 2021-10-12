@@ -19,12 +19,12 @@
     </a>
 </p>
 
-OpenUE 是一个简单可用的通用自然语言信息抽取工具，适用于python 初学者或有经验的机器学习开发人员。
+[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个简单可用的通用自然语言信息抽取工具，适用于python 初学者或有经验的机器学习开发人员。
 
 **特点**
 
 
-  - 基于SOTA模型的NLP抽取任务 (兼容BERT, XLNet等预训练模型.)
+  - 基于预训练语言模型的NLP抽取任务 (兼容BERT, Roberta等预训练模型.)
     - 实体关系抽取
     - 意图识别和槽位填充
     - 事件抽取
@@ -72,6 +72,12 @@ conda install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvid
 python setup.py install
 ```
 
+#### pip安装
+
+```shell
+pip install openue
+```
+
 #### 使用方式
 
 数据格式为`json`文件，具体例子如下。
@@ -97,7 +103,7 @@ python setup.py install
 
 ### 训练模型
 
-将数据存放在`./dataset/`目录下之后进行训练。运行以下脚本，将自动下载数据集和预训练模型并开始训练，过程中请保持网络畅通以免模型和数据下载失败。
+将数据存放在`./dataset/`目录下之后进行训练。如目录为空，运行以下脚本，将自动下载数据集和预训练模型并开始训练，过程中请保持网络畅通以免模型和数据下载失败。
 
 ```shell
 # 训练NER命名实体识别模块
@@ -139,6 +145,11 @@ torch-model-archiver --model-name BERTForNER_en  \
 sudo cp ./BERTForSEQ_en.mar /home/model-server/model-store/
 curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=false&url=BERTForSEQ_en.mar&batch_size=1&max_batch_delay=200"
 ```
+## 项目成员
+
+张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、田玺、邓淑敏、陈漠沙、谭传奇、黄非、郑国轴、陈华钧等
+
+<br>
 
 ## 引用
 

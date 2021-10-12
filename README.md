@@ -78,6 +78,12 @@ python setup.py install
 pip install openue
 ```
 
+#### pip本地开发
+
+```shell
+python setup.py develop
+```
+
 #### 使用方式
 
 数据格式为`json`文件，具体例子如下。

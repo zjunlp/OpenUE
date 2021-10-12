@@ -154,9 +154,8 @@ distill
 output_seq
 seq_model
 dataset
-*/my*
+scripts/my*
+my_upload.sh
 *.txt
 
 config/2*
-
-my_upload.sh

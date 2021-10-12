@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="openue",
-    version="0.1.1",
+    version="0.1.4",
     author="zxlzr",
     author_email="jack16900@gmail.com",
     description="An open toolkit of universal extraction from text.",

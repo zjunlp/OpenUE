@@ -156,3 +156,6 @@ seq_model
 dataset
 */my*
 *.txt
+
+config/2*
+my*

@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-<strong> OpenUE is a toolkit that provides a off-the-shelf framework to implement lots of NLP extraction tasks. 
+<strong> OpenUE is a lightweight toolkit for knowledge graph extraction. 
     </strong>
 </p>
     <p align="center">
@@ -19,15 +19,15 @@
     </a>
 </p>
 
-[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个简单可用的通用自然语言信息抽取工具，适用于python 初学者或有经验的机器学习开发人员。
+[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个轻量级知识图谱抽取工具，适用于python 初学者或有经验的机器学习开发人员。
 
 **特点**
 
 
-  - 基于预训练语言模型的NLP抽取任务 (兼容BERT, Roberta等预训练模型.)
+  - 基于预训练语言模型的知识抽取任务 (兼容BERT, Roberta等预训练模型.)
     - 实体关系抽取
-    - 意图识别和槽位填充
     - 事件抽取
+    - 槽位和意图抽取
     - <em> 更多的任务 </em>
   - 训练和测试接口
   - 快速部署NLP模型
@@ -153,7 +153,7 @@ curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=fals
 ```
 ## 项目成员
 
-张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、田玺、邓淑敏、陈漠沙、谭传奇、黄非、郑国轴、陈华钧等
+张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、田玺、邓淑敏、叶宏彬、陈漠沙、谭传奇、黄非、郑国轴、陈华钧等
 
 <br>
 

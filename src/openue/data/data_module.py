@@ -41,12 +41,11 @@ class REDataset(BaseDataModule):
     def prepare_data(self):
         # download the dataset and move it to the dataset fold
         if not os.path.exists(self.args.data_dir):
-            os.system("mkdir ske")
             os.system("wget  http://47.92.96.190/dataset/ske.tar.gz")
-            os.system("tar zxvf ske.tar.gz -C ske")
+            os.system("tar -zxvf ske.tar.gz")
+            os.system("mkdir dataset")
             os.system("mv ske ./dataset")
             os.system("rm ske.tar.gz")
-            os.system("mv ./dataset/ske/val.json ./dataset/ske/dev.json")
 
         pass
 

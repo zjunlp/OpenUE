@@ -19,7 +19,7 @@
     </a>
 </p>
 
-[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个轻量级知识图谱抽取工具，适用于python 初学者或有经验的机器学习开发人员。
+[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个轻量级知识图谱抽取工具。
 
 **特点**
 

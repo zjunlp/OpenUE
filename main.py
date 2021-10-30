@@ -109,7 +109,7 @@ def main():
     callbacks = [early_callback, model_checkpoint]
 
     # args.weights_summary = "full"  # Print full summary of the model
-    trainer = MyTrainer.from_argparse_args(args, callbacks=callbacks, logger=logger, default_root_dir="training/logs")
+    trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks, logger=logger, default_root_dir="training/logs")
     
     
     test_only = "interactive" in args.task_name 

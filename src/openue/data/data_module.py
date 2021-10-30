@@ -42,12 +42,10 @@ class REDataset(BaseDataModule):
         # download the dataset and move it to the dataset fold
         if not os.path.exists(self.args.data_dir):
             os.system("wget  http://47.92.96.190/dataset/ske.tar.gz")
-            os.system("tar -zxvf ske.tar.gz")
+            os.system("tar -xzvf ske.tar.gz")
             os.system("mkdir dataset")
             os.system("mv ske ./dataset")
             os.system("rm ske.tar.gz")
-
-        pass
 
     def train_dataloader(self):
         return DataLoader(self.data_train, shuffle=True, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, collate_fn=self.collate_fn)

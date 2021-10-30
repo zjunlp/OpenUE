@@ -10,7 +10,17 @@ OPTIMIZER = "AdamW"
 LR = 5e-5
 LOSS = "cross_entropy"
 ONE_CYCLE_TOTAL_STEPS = 100
+import os
 
+class MyTrainer(pl.Trainer):
+    def save_checkpoint(self, filepath, weights_only=False):
+        if self.is_global_zero:
+            dirpath = os.path.split(filepath)[0]
+            lightningmodel = self.get_model()
+            assert hasattr(lightningmodel.model, "save_pretrained"), "Use huggingface save pretrained method."
+            lightningmodel.model.save_pretrained(dirpath)
+            lightningmodel.tokenizer.save_pretrained(dirpath)
+            lightningmodel.model.config.save_pretrained(dirpath)
 
 class Config(dict):
     def __getattr__(self, name):
@@ -119,17 +129,4 @@ class BaseLitModel(pl.LightningModule):
             }
         }
 
-    @pl.utilities.rank_zero_only
-    def on_save_checkpoint(self, checkpoint: Dict[str, Any], filepath=None) -> None:
-        # if filepath is not None:
-        #     save_path = filepath[:-5]
-        # else:
-        #     save_path = self.output_dir.joinpath("checkpoint-hello")
-        save_path = filepath #self.output_dir.joinpath("checkpoint-curr_best")
-        print('the suggested save_path is {}, saving to {}'.format(filepath, save_path))
-
-        # self.model.config.save_step = self.step_count
-        assert hasattr(self.model, "save_pretrained"), "Must use Huggingface's transformers models"
-        self.model.save_pretrained(save_path)
-        self.tokenizer.save_pretrained(save_path)
-        print('SAVING TO checkpoint {}'.format(save_path))
+    

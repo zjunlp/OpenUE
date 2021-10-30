@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 import openue.lit_models as lit_models
 import yaml
 import time
-from transformers import AutoConfig
+from openue.lit_models import MyTrainer
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -109,7 +109,7 @@ def main():
     callbacks = [early_callback, model_checkpoint]
 
     # args.weights_summary = "full"  # Print full summary of the model
-    trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks, logger=logger, default_root_dir="training/logs")
+    trainer = MyTrainer.from_argparse_args(args, callbacks=callbacks, logger=logger, default_root_dir="training/logs")
     
     
     test_only = "interactive" in args.task_name 

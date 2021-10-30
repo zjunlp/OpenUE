@@ -19,12 +19,12 @@
     </a>
 </p>
 
-[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个轻量级知识图谱抽取工具，适用于python 初学者或有经验的机器学习开发人员。
+[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) 是一个轻量级知识图谱抽取工具。
 
 **特点**
 
 
-  - 基于预训练语言模型的知识抽取任务 (兼容BERT, Roberta等预训练模型.)
+  - 基于预训练语言模型的知识图谱抽取任务 (兼容BERT, Roberta等预训练模型.)
     - 实体关系抽取
     - 事件抽取
     - 槽位和意图抽取

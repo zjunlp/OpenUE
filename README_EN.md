@@ -20,7 +20,7 @@
     </a>
 </p>
 
-[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) is a lightweight knowledge graph construction tool, suitable for beginners or experienced machine learning engineer in python development.
+[OpenUE](https://aclanthology.org/2020.emnlp-demos.1/) is a lightweight knowledge graph extraction tool.
 
 **Features**
 

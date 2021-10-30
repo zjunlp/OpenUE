@@ -6,17 +6,12 @@ data_class: REDataset
 data_dir: ./dataset/ske
 flush_logs_every_n_steps: 100
 gpus: 0,
-limit_predict_batches: 1.0
-limit_test_batches: 1.0
-limit_train_batches: 1.0
-limit_val_batches: 1.0
 litmodel_class: SEQLitModel
 logger: true
 lr: 5.0e-05
 max_epochs: 1
 max_seq_length: 128
 # set max steps to help play demos
-max_steps: 32
 max_time: null
 min_epochs: null
 min_steps: null

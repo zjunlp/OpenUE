@@ -156,7 +156,7 @@ curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=fals
 ```
 ## Members
 
-Zhejiang University：张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
+Zhejiang University：张宁豫、谢辛、毕祯、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
 
 Alibaba DAMO Academy：陈漠沙、谭传奇、黄非
 

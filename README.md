@@ -125,6 +125,14 @@ python setup.py develop
 [ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
 使用中文数据集作为例子具体介绍了如何使用openue中的`lit_models`,`models`和`data`。方便用户构建自己的训练逻辑。
 
+### wandb 支持
+
+```python
+# 在代码中将logger 部分替换成wandb logger即可支持wandb
+logger = pl.loggers.WandbLogger(project="openue")
+```
+
+
 ## 快速部署模型
 
 ### 下载torchserve-docker

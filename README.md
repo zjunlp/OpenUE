@@ -125,7 +125,7 @@ python setup.py develop
 [ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
 使用中文数据集作为例子具体介绍了如何使用openue中的`lit_models`,`models`和`data`。方便用户构建自己的训练逻辑。
 
-[colab快速开始](https://colab.research.google.com/drive/1VNhFYcqDbXl1b3HzU8sc-NgbhV2ZyYzW?usp=sharing)
+[colab快速开始](https://colab.research.google.com/drive/1VNhFYcqDbXl1b3HzU8sc-NgbhV2ZyYzW?usp=sharing) 使用colab云端环境，无需配置环境。
 
 <!-- ![image](https://user-images.githubusercontent.com/31753427/140022588-c3b38495-89b1-4f3c-8298-bcc1086f78bf.png) -->
 

@@ -128,6 +128,15 @@ Here we use a small demo to show the training briefly, in which only one batch i
 [ske dataset training notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
 Using the Chinese dataset as an example specifically introduces how to use `lit_models`, `models` and `data` in openue. It is convenient for users to construct their own training logic.
 
+
+[colab quick start](https://colab.research.google.com/drive/1VNhFYcqDbXl1b3HzU8sc-NgbhV2ZyYzW?usp=sharing) Use colab for fast training your OpenUE models.
+
+### support auto parameter tuning（wandb）
+```python
+# just need to replace the default logger by the wandb logger
+logger = pl.loggers.WandbLogger(project="openue")
+```
+
 ## Fast depolyment
 
 ### Install torchserve-docker
@@ -156,7 +165,7 @@ curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=fals
 ```
 ## Members
 
-Zhejiang University：张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
+Zhejiang University：张宁豫、谢辛、毕祯、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
 
 Alibaba DAMO Academy：陈漠沙、谭传奇、黄非
 

@@ -120,10 +120,22 @@ python setup.py develop
 
 下面使用一个小demo简要展示训练过程，其中仅训练一个batch来加速展示。
 ![框架](./imgs/demo.gif)
-### notebook快速开始
+### Notebook快速开始
 
 [ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)
 使用中文数据集作为例子具体介绍了如何使用openue中的`lit_models`,`models`和`data`。方便用户构建自己的训练逻辑。
+
+[colab快速开始](https://colab.research.google.com/drive/1VNhFYcqDbXl1b3HzU8sc-NgbhV2ZyYzW?usp=sharing) 使用colab云端环境，无需配置环境。
+
+<!-- ![image](https://user-images.githubusercontent.com/31753427/140022588-c3b38495-89b1-4f3c-8298-bcc1086f78bf.png) -->
+
+### 支持自动调参（wandb）
+
+```python
+# 在代码中将logger 部分替换成wandb logger即可支持wandb
+logger = pl.loggers.WandbLogger(project="openue")
+```
+
 
 ## 快速部署模型
 
@@ -153,7 +165,7 @@ curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=fals
 ```
 ## 项目成员
 
-浙江大学：张宁豫、谢辛、毕帧、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
+浙江大学：张宁豫、谢辛、毕祯、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
 
 达摩院：陈漠沙、谭传奇、黄非
 

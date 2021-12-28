@@ -30,7 +30,7 @@ num_sanity_val_steps: 2
 num_workers: 8
 optimizer: AdamW
 overfit_batches: 0.0
-overwrite_cache: false
+overwrite_cache: true
 plugins: null
 precision: 32
 prepare_data_per_node: true

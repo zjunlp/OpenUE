@@ -12,7 +12,7 @@ if os.path.isfile(requirementPath):
 
 setuptools.setup(
     name="openue",
-    version="0.2.4",
+    version="0.2.5",
     author="zxlzr",
     author_email="jack16900@gmail.com",
     description="An open toolkit of universal extraction from text.",

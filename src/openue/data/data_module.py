@@ -15,6 +15,7 @@ collator_set = {"ner": openue_data_collator_ner, "seq": openue_data_collator_seq
 class REDataset(BaseDataModule):
     def __init__(self, args) -> None:
         super().__init__(args)
+        self.prepare_data()
         self.tokenizer = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
         self.num_labels = len(get_labels_ner()) if args.task_name == "ner" else len(get_labels_seq(args))
         self.collate_fn = collator_set[args.task_name]
@@ -40,12 +41,13 @@ class REDataset(BaseDataModule):
 
     def prepare_data(self):
         # download the dataset and move it to the dataset fold
+        name = self.args.data_dir.split("/")[-1]
         if not os.path.exists(self.args.data_dir):
-            os.system("wget  http://47.92.96.190/dataset/ske.tar.gz")
-            os.system("tar -xzvf ske.tar.gz")
+            os.system(f"wget  http://47.92.96.190/dataset/{name}.tar.gz")
+            os.system(f"tar -xzvf {name}.tar.gz")
             os.system("mkdir dataset")
-            os.system("mv ske ./dataset")
-            os.system("rm ske.tar.gz")
+            os.system(f"mv {name} ./dataset")
+            os.system(f"rm {name}.tar.gz")
 
     def train_dataloader(self):
         return DataLoader(self.data_train, shuffle=True, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, collate_fn=self.collate_fn)

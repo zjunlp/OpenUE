@@ -142,6 +142,9 @@ python setup.py develop
 logger = pl.loggers.WandbLogger(project="openue")
 ```
 
+### 支持英文 
+
+针对英文数据集，唯一需要改变的参数为`model_name_or_path`即预训练语言模型的权重参数，由于`transformers`库强大的兼容性，所以针对英文只需要将原先的中文预训练语言模型`bert-base-chinese`改为英文的预训练语言模型`bert-base-uncased`即可运行。
 
 ## 快速部署模型
 

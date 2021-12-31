@@ -120,6 +120,11 @@ python setup.py develop
 
 下面使用一个小demo简要展示训练过程，其中仅训练一个batch来加速展示。
 ![框架](./imgs/demo.gif)
+
+### 验证模型
+
+由于我们使用pipeline模型，所以无法联合训练，需要分别训练后进行统一验证。 在运行了两个训练脚本后，在`output`路径下会得到两个模型权重`output/ner/${dataset}`以及`output/seq/${dataset}`根据不同数据集放在对应的目录中。将模型权重目录分别作为`ner_model_name_or_path`和`seq_model_name_or_path`输入到 `run_infer.yaml`或者是`run_infer.sh`运行脚本中，即可进行验证。
+
 ### Notebook快速开始
 
 [ske数据集训练notebook](https://github.com/zjunlp/OpenUE/blob/pytorch/ske.ipynb)

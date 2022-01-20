@@ -1,4 +1,3 @@
-python setup.py install
 dataset="WebNLG"
 
 

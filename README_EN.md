@@ -165,9 +165,9 @@ curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=fals
 ```
 ## Members
 
-Zhejiang University：张宁豫、谢辛、毕祯、王泽元、陈想、余海阳、邓淑敏、叶宏彬、田玺、郑国轴、陈华钧
+Zhejiang University：[Ningyu Zhang](https://person.zju.edu.cn/en/ningyu)、Xin Xie、Zhen Bi、Xiang Chen、Haiyang Yu、Shumin Deng、Hongbin Ye、Guozhou Zheng、Huajun Chen
 
-Alibaba DAMO Academy：陈漠沙、谭传奇、黄非
+Alibaba DAMO Academy：Mosha Chen、Chuanqi Tan、Fei Huang
 
 <br>
 
@@ -176,9 +176,29 @@ Alibaba DAMO Academy：陈漠沙、谭传奇、黄非
 If you use or extend our work, please cite the following articles:
 
 ```
-@inproceedings{zhang-2020-opennue,
-    title = "{O}pe{UE}: An Open Toolkit of Universal Extraction from Text",
-    author = "Ningyu Zhang, Shumin Deng, Zhen Bi, Haiyang Yu, Jiacheng Yang, Mosha Chen, Fei Huang, Wei Zhang, Huajun Chen",
-    year = "2020",
+@inproceedings{DBLP:conf/emnlp/ZhangDBYYCHZC20,
+  author    = {Ningyu Zhang and
+               Shumin Deng and
+               Zhen Bi and
+               Haiyang Yu and
+               Jiacheng Yang and
+               Mosha Chen and
+               Fei Huang and
+               Wei Zhang and
+               Huajun Chen},
+  editor    = {Qun Liu and
+               David Schlangen},
+  title     = {OpenUE: An Open Toolkit of Universal Extraction from Text},
+  booktitle = {Proceedings of the 2020 Conference on Empirical Methods in Natural
+               Language Processing: System Demonstrations, {EMNLP} 2020 - Demos,
+               Online, November 16-20, 2020},
+  pages     = {1--8},
+  publisher = {Association for Computational Linguistics},
+  year      = {2020},
+  url       = {https://doi.org/10.18653/v1/2020.emnlp-demos.1},
+  doi       = {10.18653/v1/2020.emnlp-demos.1},
+  timestamp = {Wed, 08 Sep 2021 16:17:48 +0200},
+  biburl    = {https://dblp.org/rec/conf/emnlp/ZhangDBYYCHZC20.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```

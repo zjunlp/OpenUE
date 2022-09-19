@@ -211,3 +211,11 @@ curl -v -X POST "http://localhost:3001/models?initial_workers=1&synchronous=fals
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
+# 其他开源知识抽取工具
+
+- [CogIE](https://github.com/jinzhuoran/CogIE)
+- [OpenNRE](https://github.com/thunlp/OpenNRE)
+- [OmniEvent](https://github.com/THU-KEG/OmniEvent)
+- [DeepKE](https://github.com/zjunlp/deepke)
+- [OpenIE](https://stanfordnlp.github.io/CoreNLP/openie.html)
+- [RESIN](https://github.com/RESIN-KAIROS/RESIN-pipeline-public)
